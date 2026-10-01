@@ -1,7 +1,7 @@
 import streamlit as st
 
 from charts import average_total_by_grade, band_chart, correlation_heatmap, score_histogram, total_by_gender
-from data import SUBJECTS, load_data
+from data import SUBJECTS, load_uploaded_data, validate_data
 from metrics import failing_any_rate, passing_all_rate, performance_bands, ranked_students, top_student_per_grade
 
 
@@ -57,17 +57,36 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+with st.sidebar:
+    st.markdown("## STUDENT\n## SIGNAL")
+    st.caption("Upload a cohort, then explore it")
+    st.markdown("---")
+    st.header("1. Upload data")
+    uploaded_files = st.file_uploader("CSV files", type="csv", accept_multiple_files=True, help="Upload one CSV or several parts of the same dataset.")
+
+if not uploaded_files:
+    st.markdown('<div class="section-label">Ready when you are</div>', unsafe_allow_html=True)
+    st.info("Upload one or more CSV files from the sidebar to automatically clean and analyze your student data.")
+    st.markdown("""
+    **Accepted automatically**
+
+    - CSV files with or without headers
+    - Common gender and grade spellings
+    - Score cells containing text such as `marks`
+    - Multiple CSV parts combined into one cohort
+    """)
+    st.stop()
+
 try:
-    data = load_data()
+    data, cleaning = load_uploaded_data(uploaded_files)
+    data = validate_data(data)
 except (FileNotFoundError, ValueError) as error:
-    st.error(f"The dashboard cannot load this dataset: {error}")
+    st.error(f"The uploaded dataset needs attention: {error}")
     st.stop()
 
 with st.sidebar:
-    st.markdown("## STUDENT\n## SIGNAL")
-    st.caption("Explore the validated cohort")
     st.markdown("---")
-    st.header("Refine the view")
+    st.header("2. Refine the view")
     selected_grades = st.multiselect("Grade", sorted(data["grade"].unique()))
     selected_genders = st.multiselect("Gender", sorted(data["gender"].unique()))
     selected_subject = st.selectbox("Subject", SUBJECTS)
@@ -81,6 +100,8 @@ if selected_genders:
 if filtered.empty:
     st.warning("No students match these filters. Try selecting a wider range.")
     st.stop()
+
+st.caption(f"{cleaning['cleaned_rows']:,} clean records ready from {cleaning['uploaded_rows']:,} uploaded rows")
 
 overview, top_students, charts, quality = st.tabs(["Overview", "Top Students", "Charts", "Data Quality"])
 
@@ -119,15 +140,20 @@ with charts:
 
 with quality:
     st.markdown('<div class="section-label">Trust the inputs</div>', unsafe_allow_html=True)
-    st.subheader("How the source data was cleaned")
+    st.subheader("How the upload was prepared")
+    quality_metrics = st.columns(3)
+    quality_metrics[0].metric("Uploaded rows", f"{cleaning['uploaded_rows']:,}")
+    quality_metrics[1].metric("Clean rows", f"{cleaning['cleaned_rows']:,}")
+    quality_metrics[2].metric("Rows removed", f"{cleaning['removed_rows']:,}")
     st.markdown(
         """
-        - Three of four source files had no header, so the shared schema was applied.
-        - Twelve gender spellings were normalized to Female, Male, or Unknown.
-        - Thirty-six grade formats were normalized to integers 1 through 12.
-        - 4,028 score cells contained the text `marks`; the text was removed while preserving the numbers.
-        - Names were not unique, so `unique_name` was created for row-level identification.
+        - Header names are detected and standardized automatically.
+        - Gender spellings are normalized to Female, Male, or Unknown.
+        - Grade values are extracted and normalized to integers 1 through 12.
+        - Score cells containing text such as `marks` are converted to numbers.
+        - Totals are recalculated from the three subject scores.
+        - Names receive a unique row identifier for reliable ranking.
 
-        `Unknown` gender values remain Unknown because the original 0/1 codebook was unavailable.
+        Invalid rows are removed before analysis so every chart uses validated values.
         """
     )
