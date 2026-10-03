@@ -112,9 +112,32 @@ with st.sidebar:
     st.markdown('<div class="sidebar-brand">STUDENT<br><span>SIGNAL</span></div>', unsafe_allow_html=True)
     st.caption("School performance workspace")
     st.markdown("---")
-    st.markdown('<div class="sidebar-step">01 / Build your dataset</div>', unsafe_allow_html=True)
-    uploaded_files = st.file_uploader("Upload CSV files", type="csv", accept_multiple_files=True, help="Upload one CSV or several parts of the same dataset.")
+    st.markdown('<div class="sidebar-step">01 / Dataset workspace</div>', unsafe_allow_html=True)
+    st.caption("Upload and analyze from the main workspace.")
 
+if "uploaded_files" not in st.session_state:
+    st.session_state.uploaded_files = None
+
+if st.session_state.uploaded_files is None:
+    with st.container(border=True):
+        upload_columns = st.columns([1.5, 1])
+        with upload_columns[0]:
+            st.markdown('<div class="control-heading">Upload your dataset</div>', unsafe_allow_html=True)
+            st.markdown('<div class="control-caption">Add one CSV or several files from the same school cohort. Cleaning starts automatically.</div>', unsafe_allow_html=True)
+        with upload_columns[1]:
+            uploaded_files = st.file_uploader(
+                "Choose CSV files",
+                type="csv",
+                accept_multiple_files=True,
+                help="CSV files may include headers, common grade formats, or score text such as marks.",
+            )
+        if uploaded_files:
+            st.session_state.uploaded_files = uploaded_files
+            st.rerun()
+else:
+    uploaded_files = st.session_state.uploaded_files
+
+with st.sidebar:
     if uploaded_files:
         st.markdown(
             f'<div class="sidebar-status"><strong>{len(uploaded_files)} file(s) ready</strong><small>Cleaning and analysis are enabled</small></div>',
