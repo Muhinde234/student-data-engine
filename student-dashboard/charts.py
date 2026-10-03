@@ -64,3 +64,30 @@ def correlation_heatmap(data: pd.DataFrame) -> go.Figure:
     figure = px.imshow(correlation, text_auto=".2f", zmin=-1, zmax=1, color_continuous_scale="Blues")
     figure.update_layout(title="Subject scores have these relationships")
     return polish(figure)
+
+
+def gender_subject_comparison(data: pd.DataFrame) -> go.Figure:
+    """Compare average subject scores for each gender label."""
+    averages = data.groupby("gender")[["math", "science", "english"]].mean().reset_index()
+    long = averages.melt(id_vars="gender", var_name="subject", value_name="average_score")
+    figure = px.bar(
+        long,
+        x="subject",
+        y="average_score",
+        color="gender",
+        barmode="group",
+        color_discrete_sequence=["#E56B56", "#2F6690", "#E0A458"],
+    )
+    figure.update_layout(title="Average subject scores by gender", yaxis_title="Average score")
+    return polish(figure)
+
+
+def subject_outcomes(data: pd.DataFrame) -> go.Figure:
+    """Compare average score and pass rate for each subject."""
+    outcomes = data[["math", "science", "english"]].agg(["mean", lambda values: values.ge(40).mean() * 100]).T.reset_index()
+    outcomes.columns = ["subject", "average_score", "pass_rate"]
+    long = outcomes.melt(id_vars="subject", var_name="measure", value_name="value")
+    long["measure"] = long["measure"].replace({"average_score": "Average score", "pass_rate": "Pass rate"})
+    figure = px.bar(long, x="subject", y="value", color="measure", barmode="group", color_discrete_sequence=["#2F6690", "#E56B56"])
+    figure.update_layout(title="Subject health: score and pass rate", yaxis_title="Percent / score")
+    return polish(figure)

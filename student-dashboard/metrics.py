@@ -37,3 +37,39 @@ def top_student_per_grade(data: pd.DataFrame) -> pd.DataFrame:
     """Return all top-ranked students for each grade, including ties."""
     ranked = ranked_students(data)
     return ranked[ranked.groupby("grade")["rank"].transform("min") == ranked["rank"]]
+
+
+def gender_summary(data: pd.DataFrame) -> pd.DataFrame:
+    """Compare group size, scores, and pass rates by gender label."""
+    summary = data.groupby("gender").agg(
+        students=("student_id", "size"),
+        average_total=("total", "mean"),
+        average_math=("math", "mean"),
+        average_science=("science", "mean"),
+        average_english=("english", "mean"),
+    )
+    summary["passing_all"] = data.groupby("gender")[SUBJECTS].apply(lambda group: group.ge(40).all(axis=1).mean() * 100)
+    return summary.reset_index().sort_values("average_total", ascending=False)
+
+
+def subject_summary(data: pd.DataFrame) -> pd.DataFrame:
+    """Summarize average scores and pass rates for every subject."""
+    rows = []
+    for subject in SUBJECTS:
+        rows.append(
+            {
+                "subject": subject.title(),
+                "average_score": data[subject].mean(),
+                "pass_rate": data[subject].ge(40).mean() * 100,
+                "excellent_rate": data[subject].ge(80).mean() * 100,
+            }
+        )
+    return pd.DataFrame(rows).sort_values("average_score", ascending=False)
+
+
+def grade_summary(data: pd.DataFrame) -> pd.DataFrame:
+    """Summarize cohort size, average score, and pass rate by grade."""
+    grouped = data.groupby("grade")
+    summary = grouped.agg(students=("student_id", "size"), average_total=("total", "mean"))
+    summary["passing_all"] = grouped[SUBJECTS].apply(lambda group: group.ge(40).all(axis=1).mean() * 100)
+    return summary.reset_index()
