@@ -1,8 +1,8 @@
 import streamlit as st
 
-from charts import average_total_by_grade, band_chart, correlation_heatmap, score_histogram, total_by_gender
+from charts import average_total_by_grade, band_chart, correlation_heatmap, gender_subject_comparison, score_histogram, subject_outcomes, total_by_gender
 from data import SUBJECTS, load_uploaded_data, validate_data
-from metrics import failing_any_rate, passing_all_rate, performance_bands, ranked_students, top_student_per_grade
+from metrics import failing_any_rate, gender_summary, passing_all_rate, performance_bands, ranked_students, subject_summary, top_student_per_grade
 
 
 def show_chart(chart_function, data, *arguments):
@@ -10,7 +10,7 @@ def show_chart(chart_function, data, *arguments):
     try:
         st.plotly_chart(
             chart_function(data, *arguments),
-            use_container_width=True,
+            width="stretch",
             config={
                 "displayModeBar": True,
                 "displaylogo": False,
@@ -146,7 +146,7 @@ with st.sidebar:
 
 if not uploaded_files:
     st.markdown('<div class="section-label">Ready when you are</div>', unsafe_allow_html=True)
-    st.info("Upload one or more CSV files from the sidebar to automatically clean and analyze your student data.")
+    st.info("Upload one or more CSV files above to automatically clean and analyze your student data.")
     st.markdown("""
     **Accepted automatically**
 
@@ -193,9 +193,9 @@ with st.container(border=True):
         with action_columns[0]:
             st.markdown('<div class="control-hint">Choose a focus, then run the analysis.</div>', unsafe_allow_html=True)
         with action_columns[1]:
-            apply_filters = st.form_submit_button("Run analysis", type="primary", use_container_width=True)
+            apply_filters = st.form_submit_button("Run analysis", type="primary", width="stretch")
         with action_columns[2]:
-            reset_clicked = st.form_submit_button("Clear", use_container_width=True, on_click=reset_filter_state)
+            reset_clicked = st.form_submit_button("Clear", width="stretch", on_click=reset_filter_state)
 
 if apply_filters:
     st.session_state.applied_grades = list(st.session_state.grades_filter)
@@ -237,7 +237,7 @@ if filtered.empty:
 
 st.caption(f"{cleaning['cleaned_rows']:,} clean records ready from {cleaning['uploaded_rows']:,} uploaded rows")
 
-overview, top_students, charts, quality = st.tabs(["Overview", "Top Students", "Charts", "Data Quality"])
+overview, top_students, insights, charts, quality = st.tabs(["Overview", "Top Students", "Insights", "Charts", "Data Quality"])
 
 with overview:
     st.markdown('<div class="section-label">At a glance</div>', unsafe_allow_html=True)
@@ -249,7 +249,7 @@ with overview:
     st.markdown('<div class="section-label">Cohort trajectory</div>', unsafe_allow_html=True)
     st.subheader("Average total by grade")
     show_chart(average_total_by_grade, filtered)
-    st.markdown('<div class="insight">The overview follows the cohort from grade 1 to grade 12. Use the sidebar to isolate a particular group and let every view update with it.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="insight">The overview follows the cohort from grade 1 to grade 12. Use the analysis controls above to isolate a group and update every view.</div>', unsafe_allow_html=True)
 
 with top_students:
     st.markdown('<div class="section-label">Leaderboard</div>', unsafe_allow_html=True)
@@ -258,9 +258,38 @@ with top_students:
         st.session_state.top_students_limit = max_students
     limit = st.slider("Students to show", min_value=1, max_value=max_students, value=min(10, max_students), key="top_students_limit")
     st.subheader("Top students share ranks when totals are tied")
-    st.dataframe(ranked_students(filtered).head(limit), use_container_width=True, hide_index=True)
+    st.dataframe(ranked_students(filtered).head(limit), width="stretch", hide_index=True)
     st.subheader("Top student per grade")
-    st.dataframe(top_student_per_grade(filtered), use_container_width=True, hide_index=True)
+    st.dataframe(top_student_per_grade(filtered), width="stretch", hide_index=True)
+
+with insights:
+    st.markdown('<div class="section-label">Decision support</div>', unsafe_allow_html=True)
+    st.subheader("What deserves attention?")
+    top_record = ranked_students(filtered).iloc[0]
+    subjects = subject_summary(filtered)
+    strongest_subject = subjects.iloc[0]
+    weakest_subject = subjects.iloc[-1]
+    insight_columns = st.columns(3)
+    insight_columns[0].metric("Leading student", top_record["unique_name"].replace("_", " "))
+    insight_columns[1].metric("Strongest subject", strongest_subject["subject"], f"{strongest_subject['average_score']:.1f} avg")
+    insight_columns[2].metric("Priority subject", weakest_subject["subject"], f"{weakest_subject['pass_rate']:.1f}% pass rate")
+    st.markdown(
+        f'<div class="insight">{top_record["unique_name"].replace("_", " ")} leads this filtered cohort with a total of {top_record["total"]:.0f}. '
+        f'{strongest_subject["subject"]} is the strongest subject by average score, while {weakest_subject["subject"]} is the clearest opportunity for support.</div>',
+        unsafe_allow_html=True,
+    )
+    gender_data = gender_summary(filtered)
+    if len(gender_data) >= 2:
+        leader = gender_data.iloc[0]
+        runner_up = gender_data.iloc[1]
+        st.markdown(f"**Observed gender comparison:** {leader['gender']} has the higher average total in this filtered cohort ({leader['average_total']:.1f} vs {runner_up['average_total']:.1f}). This is an observed difference, not evidence of causation.")
+    first_row = st.columns(2)
+    with first_row[0]:
+        show_chart(gender_subject_comparison, filtered)
+    with first_row[1]:
+        show_chart(subject_outcomes, filtered)
+    st.subheader("Subject health")
+    st.dataframe(subjects, width="stretch", hide_index=True)
 
 with charts:
     st.markdown('<div class="section-label">Explore the distributions</div>', unsafe_allow_html=True)
