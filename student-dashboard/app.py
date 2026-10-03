@@ -8,7 +8,16 @@ from metrics import failing_any_rate, passing_all_rate, performance_bands, ranke
 def show_chart(chart_function, data, *arguments):
     """Keep one unusual filtered subset from blanking the whole dashboard."""
     try:
-        st.plotly_chart(chart_function(data, *arguments), use_container_width=True)
+        st.plotly_chart(
+            chart_function(data, *arguments),
+            use_container_width=True,
+            config={
+                "displayModeBar": True,
+                "displaylogo": False,
+                "scrollZoom": True,
+                "responsive": True,
+            },
+        )
     except (KeyError, TypeError, ValueError) as error:
         st.warning(f"This chart needs more data for the current filters: {error}")
 
@@ -72,6 +81,22 @@ st.markdown(
     [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #243d50; border-color: #486073; }
     [data-testid="stSidebar"] [data-testid="stMultiSelect"] span { background: #e56b56; border: 0; }
     [data-testid="stDataFrame"] { border: 1px solid var(--line); }
+    .js-plotly-plot .plotly .modebar { opacity: 1 !important; visibility: visible !important; }
+    .js-plotly-plot .plotly .modebar-group { background: rgba(251, 248, 243, 0.92); border-radius: 4px; }
+    .js-plotly-plot .plotly .modebar-btn path { fill: #172a3a !important; }
+    [data-testid="stForm"] { background: var(--surface); border: 0; padding: 0.15rem 0 0; }
+    [data-testid="stForm"] label { color: var(--ink); font: 600 0.75rem 'DM Sans', sans-serif; letter-spacing: 0.03em; }
+    [data-testid="stFormSubmitButton"] button { min-height: 2.7rem; border-radius: 4px; font: 700 0.78rem 'DM Sans', sans-serif; letter-spacing: 0.01em; transition: all 150ms ease; }
+    [data-testid="stFormSubmitButton"] button[kind="primary"] { background: var(--coral); border-color: var(--coral); color: #fffaf5; }
+    [data-testid="stFormSubmitButton"] button[kind="primary"]:hover { background: #c95442; border-color: #c95442; }
+    [data-testid="stFormSubmitButton"] button:not([kind="primary"]) { background: transparent; border-color: var(--line); color: var(--muted); }
+    [data-testid="stFormSubmitButton"] button:not([kind="primary"]):hover { border-color: var(--ink); color: var(--ink); }
+    [data-testid="stFormSubmitButton"] { margin-top: 0; }
+    .control-actions { border-top: 1px solid var(--line); margin-top: 0.8rem; padding-top: 0.85rem; }
+    .control-hint { color: var(--muted); font: 400 0.76rem 'DM Sans', sans-serif; padding-top: 0.55rem; }
+    .control-heading { color: var(--ink); font: 700 1.05rem 'Space Grotesk', sans-serif; margin-bottom: 0.1rem; }
+    .control-caption { color: var(--muted); font: 400 0.8rem 'DM Sans', sans-serif; }
+    .control-state { color: var(--blue); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; padding-top: 0.35rem; }
     .section-label { color: var(--coral); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.13em; text-transform: uppercase; margin: 1.7rem 0 0.35rem; }
     .insight { background: var(--ink); border-left: 4px solid var(--coral); color: #f4f0ea; padding: 1rem 1.2rem; border-radius: 3px; font: 500 0.9rem 'DM Sans', sans-serif; }
     </style>
@@ -123,19 +148,31 @@ if "applied_genders" not in st.session_state:
 if "applied_subject" not in st.session_state:
     st.session_state.applied_subject = SUBJECTS[0]
 
-st.markdown('<div class="section-label">Control the view</div>', unsafe_allow_html=True)
-with st.form("analysis_filters"):
-    filter_columns = st.columns([1.2, 1.2, 1, 0.8])
-    with filter_columns[0]:
-        st.multiselect("Grade", sorted(data["grade"].unique()), key="grades_filter")
-    with filter_columns[1]:
-        st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter")
-    with filter_columns[2]:
-        st.selectbox("Subject", SUBJECTS, key="subject_filter")
-    with filter_columns[3]:
-        st.markdown("&nbsp;", unsafe_allow_html=True)
-        apply_filters = st.form_submit_button("Apply filters", type="primary", use_container_width=True)
-        reset_clicked = st.form_submit_button("Reset", use_container_width=True, on_click=reset_filter_state)
+with st.container(border=True):
+    heading_columns = st.columns([1.6, 1])
+    with heading_columns[0]:
+        st.markdown('<div class="control-heading">Analysis controls</div>', unsafe_allow_html=True)
+        st.markdown('<div class="control-caption">Shape the cohort before reading the results.</div>', unsafe_allow_html=True)
+    with heading_columns[1]:
+        active_count = len(st.session_state.applied_grades) + len(st.session_state.applied_genders)
+        state_label = "Full cohort" if active_count == 0 else f"{active_count} filters active"
+        st.markdown(f'<div class="control-state">{state_label}</div>', unsafe_allow_html=True)
+    with st.form("analysis_filters"):
+        filter_columns = st.columns([1.2, 1.2, 1])
+        with filter_columns[0]:
+            st.multiselect("Grade", list(range(1, 13)), key="grades_filter", placeholder="All grades")
+        with filter_columns[1]:
+            st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter", placeholder="All genders")
+        with filter_columns[2]:
+            st.selectbox("Subject", SUBJECTS, key="subject_filter", format_func=str.title)
+        st.markdown('<div class="control-actions"></div>', unsafe_allow_html=True)
+        action_columns = st.columns([2.4, 1, 1], gap="small", vertical_alignment="center")
+        with action_columns[0]:
+            st.markdown('<div class="control-hint">Choose a focus, then run the analysis.</div>', unsafe_allow_html=True)
+        with action_columns[1]:
+            apply_filters = st.form_submit_button("Run analysis", type="primary", use_container_width=True)
+        with action_columns[2]:
+            reset_clicked = st.form_submit_button("Clear", use_container_width=True, on_click=reset_filter_state)
 
 if apply_filters:
     st.session_state.applied_grades = list(st.session_state.grades_filter)
@@ -188,7 +225,7 @@ with overview:
     kpis[3].metric("Failing at least one", f"{failing_any_rate(filtered):.1f}%")
     st.markdown('<div class="section-label">Cohort trajectory</div>', unsafe_allow_html=True)
     st.subheader("Average total by grade")
-    st.plotly_chart(average_total_by_grade(filtered), use_container_width=True)
+    show_chart(average_total_by_grade, filtered)
     st.markdown('<div class="insight">The overview follows the cohort from grade 1 to grade 12. Use the sidebar to isolate a particular group and let every view update with it.</div>', unsafe_allow_html=True)
 
 with top_students:
