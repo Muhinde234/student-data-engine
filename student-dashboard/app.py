@@ -5,6 +5,24 @@ from data import SUBJECTS, load_uploaded_data, validate_data
 from metrics import failing_any_rate, passing_all_rate, performance_bands, ranked_students, top_student_per_grade
 
 
+def show_chart(chart_function, data, *arguments):
+    """Keep one unusual filtered subset from blanking the whole dashboard."""
+    try:
+        st.plotly_chart(chart_function(data, *arguments), use_container_width=True)
+    except (KeyError, TypeError, ValueError) as error:
+        st.warning(f"This chart needs more data for the current filters: {error}")
+
+
+def reset_filter_state():
+    """Reset both visible filter controls and the applied analysis state."""
+    st.session_state.grades_filter = []
+    st.session_state.gender_filter = []
+    st.session_state.subject_filter = SUBJECTS[0]
+    st.session_state.applied_grades = []
+    st.session_state.applied_genders = []
+    st.session_state.applied_subject = SUBJECTS[0]
+
+
 st.set_page_config(page_title="Student Performance Dashboard", layout="wide")
 st.markdown(
     """
@@ -98,21 +116,35 @@ except (FileNotFoundError, ValueError) as error:
     st.error(f"The uploaded dataset needs attention: {error}")
     st.stop()
 
+if "applied_grades" not in st.session_state:
+    st.session_state.applied_grades = []
+if "applied_genders" not in st.session_state:
+    st.session_state.applied_genders = []
+if "applied_subject" not in st.session_state:
+    st.session_state.applied_subject = SUBJECTS[0]
+
 st.markdown('<div class="section-label">Control the view</div>', unsafe_allow_html=True)
-filter_columns = st.columns([1.2, 1.2, 1, 0.65])
-with filter_columns[0]:
-    selected_grades = st.multiselect("Grade", sorted(data["grade"].unique()), key="grades_filter")
-with filter_columns[1]:
-    selected_genders = st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter")
-with filter_columns[2]:
-    selected_subject = st.selectbox("Subject", SUBJECTS, key="subject_filter")
-with filter_columns[3]:
-    st.markdown("&nbsp;", unsafe_allow_html=True)
-    if st.button("Reset", key="reset_filters"):
-        st.session_state.grades_filter = []
-        st.session_state.gender_filter = []
-        st.session_state.subject_filter = SUBJECTS[0]
-        st.rerun()
+with st.form("analysis_filters"):
+    filter_columns = st.columns([1.2, 1.2, 1, 0.8])
+    with filter_columns[0]:
+        st.multiselect("Grade", sorted(data["grade"].unique()), key="grades_filter")
+    with filter_columns[1]:
+        st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter")
+    with filter_columns[2]:
+        st.selectbox("Subject", SUBJECTS, key="subject_filter")
+    with filter_columns[3]:
+        st.markdown("&nbsp;", unsafe_allow_html=True)
+        apply_filters = st.form_submit_button("Apply filters", type="primary", use_container_width=True)
+        reset_clicked = st.form_submit_button("Reset", use_container_width=True, on_click=reset_filter_state)
+
+if apply_filters:
+    st.session_state.applied_grades = list(st.session_state.grades_filter)
+    st.session_state.applied_genders = list(st.session_state.gender_filter)
+    st.session_state.applied_subject = st.session_state.subject_filter
+
+selected_grades = st.session_state.applied_grades
+selected_genders = st.session_state.applied_genders
+selected_subject = st.session_state.applied_subject
 
 with st.sidebar:
     st.markdown("---")
@@ -162,7 +194,9 @@ with overview:
 with top_students:
     st.markdown('<div class="section-label">Leaderboard</div>', unsafe_allow_html=True)
     max_students = min(50, len(filtered))
-    limit = st.slider("Students to show", min_value=1, max_value=max_students, value=min(10, max_students))
+    if st.session_state.get("top_students_limit", 1) > max_students:
+        st.session_state.top_students_limit = max_students
+    limit = st.slider("Students to show", min_value=1, max_value=max_students, value=min(10, max_students), key="top_students_limit")
     st.subheader("Top students share ranks when totals are tied")
     st.dataframe(ranked_students(filtered).head(limit), use_container_width=True, hide_index=True)
     st.subheader("Top student per grade")
@@ -172,14 +206,14 @@ with charts:
     st.markdown('<div class="section-label">Explore the distributions</div>', unsafe_allow_html=True)
     first_row = st.columns(2)
     with first_row[0]:
-        st.plotly_chart(score_histogram(filtered, selected_subject), use_container_width=True)
+        show_chart(score_histogram, filtered, selected_subject)
     with first_row[1]:
-        st.plotly_chart(total_by_gender(filtered), use_container_width=True)
+        show_chart(total_by_gender, filtered)
     second_row = st.columns(2)
     with second_row[0]:
-        st.plotly_chart(band_chart(performance_bands(filtered)), use_container_width=True)
+        show_chart(band_chart, performance_bands(filtered))
     with second_row[1]:
-        st.plotly_chart(correlation_heatmap(filtered), use_container_width=True)
+        show_chart(correlation_heatmap, filtered)
 
 with quality:
     st.markdown('<div class="section-label">Trust the inputs</div>', unsafe_allow_html=True)
