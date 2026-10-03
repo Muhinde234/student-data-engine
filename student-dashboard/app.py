@@ -42,6 +42,14 @@ st.markdown(
     [data-testid="stSidebar"] { background: var(--ink); border-right: 0; }
     [data-testid="stSidebar"] * { color: #f4f0ea; }
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #b7c2c8; }
+    [data-testid="stSidebar"] .sidebar-brand { color: #f4f0ea; font: 700 1.45rem 'Space Grotesk', sans-serif; letter-spacing: -0.04em; line-height: 0.9; }
+    [data-testid="stSidebar"] .sidebar-brand span { color: var(--coral); }
+    [data-testid="stSidebar"] .sidebar-step { color: #e56b56; font: 700 0.68rem 'DM Sans', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin: 1.4rem 0 0.45rem; }
+    [data-testid="stSidebar"] .sidebar-status { background: #243d50; border: 1px solid #486073; border-radius: 4px; padding: 0.8rem 0.9rem; margin: 0.8rem 0 1rem; }
+    [data-testid="stSidebar"] .sidebar-status strong { display: block; color: #f4f0ea; font: 600 0.9rem 'DM Sans', sans-serif; }
+    [data-testid="stSidebar"] .sidebar-status small { color: #b7c2c8; font: 400 0.75rem 'DM Sans', sans-serif; }
+    [data-testid="stSidebar"] .stButton button { width: 100%; background: transparent; color: #f4f0ea; border: 1px solid #486073; }
+    [data-testid="stSidebar"] .stButton button:hover { border-color: var(--coral); color: #f4f0ea; }
     [data-testid="stSidebar"] [data-testid="stSelectbox"] label, [data-testid="stSidebar"] [data-testid="stMultiSelect"] label { color: #f4f0ea; font-weight: 600; }
     [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #243d50; border-color: #486073; }
     [data-testid="stSidebar"] [data-testid="stMultiSelect"] span { background: #e56b56; border: 0; }
@@ -58,11 +66,17 @@ st.markdown(
 )
 
 with st.sidebar:
-    st.markdown("## STUDENT\n## SIGNAL")
-    st.caption("Upload a cohort, then explore it")
+    st.markdown('<div class="sidebar-brand">STUDENT<br><span>SIGNAL</span></div>', unsafe_allow_html=True)
+    st.caption("School performance workspace")
     st.markdown("---")
-    st.header("1. Upload data")
-    uploaded_files = st.file_uploader("CSV files", type="csv", accept_multiple_files=True, help="Upload one CSV or several parts of the same dataset.")
+    st.markdown('<div class="sidebar-step">01 / Build your dataset</div>', unsafe_allow_html=True)
+    uploaded_files = st.file_uploader("Upload CSV files", type="csv", accept_multiple_files=True, help="Upload one CSV or several parts of the same dataset.")
+
+    if uploaded_files:
+        st.markdown(
+            f'<div class="sidebar-status"><strong>{len(uploaded_files)} file(s) ready</strong><small>Cleaning and analysis are enabled</small></div>',
+            unsafe_allow_html=True,
+        )
 
 if not uploaded_files:
     st.markdown('<div class="section-label">Ready when you are</div>', unsafe_allow_html=True)
@@ -86,10 +100,24 @@ except (FileNotFoundError, ValueError) as error:
 
 with st.sidebar:
     st.markdown("---")
-    st.header("2. Refine the view")
-    selected_grades = st.multiselect("Grade", sorted(data["grade"].unique()))
-    selected_genders = st.multiselect("Gender", sorted(data["gender"].unique()))
-    selected_subject = st.selectbox("Subject", SUBJECTS)
+    st.markdown('<div class="sidebar-step">02 / Focus the analysis</div>', unsafe_allow_html=True)
+    st.caption(f"{cleaning['cleaned_rows']:,} clean records · {cleaning['removed_rows']:,} removed")
+    if st.button("Reset filters"):
+        st.session_state.grades_filter = []
+        st.session_state.gender_filter = []
+        st.session_state.subject_filter = SUBJECTS[0]
+        st.rerun()
+    selected_grades = st.multiselect("Grade", sorted(data["grade"].unique()), key="grades_filter")
+    selected_genders = st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter")
+    selected_subject = st.selectbox("Subject", SUBJECTS, key="subject_filter")
+    st.markdown('<div class="sidebar-step">03 / Take the cleaned file</div>', unsafe_allow_html=True)
+    st.download_button(
+        "Download cleaned CSV",
+        data=data.to_csv(index=False).encode("utf-8"),
+        file_name="cleaned_student_data.csv",
+        mime="text/csv",
+        help="Save the validated, cleaned dataset for the school.",
+    )
 
 filtered = data.copy()
 if selected_grades:
@@ -119,7 +147,8 @@ with overview:
 
 with top_students:
     st.markdown('<div class="section-label">Leaderboard</div>', unsafe_allow_html=True)
-    limit = st.slider("Students to show", min_value=5, max_value=50, value=10)
+    max_students = min(50, len(filtered))
+    limit = st.slider("Students to show", min_value=1, max_value=max_students, value=min(10, max_students))
     st.subheader("Top students share ranks when totals are tied")
     st.dataframe(ranked_students(filtered).head(limit), use_container_width=True, hide_index=True)
     st.subheader("Top student per grade")
