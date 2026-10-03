@@ -49,9 +49,9 @@ st.markdown(
     .section-label { color: var(--coral); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.13em; text-transform: uppercase; margin: 1.7rem 0 0.35rem; }
     .insight { background: var(--ink); border-left: 4px solid var(--coral); color: #f4f0ea; padding: 1rem 1.2rem; border-radius: 3px; font: 500 0.9rem 'DM Sans', sans-serif; }
     </style>
-    <div class="hero-kicker">Academic analytics / 2025 cohort</div>
+    <div class="hero-kicker">Academic analytics / uploaded cohort</div>
     <h1>Student performance,<br>made legible.</h1>
-    <div class="hero-copy">A clear read on 4,000 exam records, from grade-level trends to the students setting the pace.</div>
+    <div class="hero-copy">A clear read on your exam records, from grade-level trends to the students setting the pace.</div>
     <div class="hero-rule"></div>
     """,
     unsafe_allow_html=True,

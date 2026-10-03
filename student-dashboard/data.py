@@ -64,9 +64,7 @@ def load_uploaded_data(uploaded_files: list[Any]) -> tuple[pd.DataFrame, dict[st
 
 
 def validate_data(data: pd.DataFrame) -> pd.DataFrame:
-    """Validate the presentation dataset and return it unchanged."""
-    if len(data) != 4000:
-        raise ValueError(f"Expected 4,000 rows, found {len(data):,}.")
+    """Validate an uploaded dataset and return it unchanged."""
     if list(data.columns) != EXPECTED_COLUMNS:
         raise ValueError("Unexpected columns. Expected: " + ", ".join(EXPECTED_COLUMNS))
     if data["student_id"].isna().any() or not data["student_id"].is_unique:
