@@ -134,7 +134,13 @@ if selected_genders:
     filtered = filtered[filtered["gender"].isin(selected_genders)]
 
 if filtered.empty:
-    st.warning("No students match these filters. Try selecting a wider range.")
+    st.error("No students match this combination of filters.")
+    st.info("Choose a different grade or gender, or reset the filters to return to the full cohort.")
+    if st.button("Return to full cohort", key="empty_reset_filters"):
+        st.session_state.grades_filter = []
+        st.session_state.gender_filter = []
+        st.session_state.subject_filter = SUBJECTS[0]
+        st.rerun()
     st.stop()
 
 st.caption(f"{cleaning['cleaned_rows']:,} clean records ready from {cleaning['uploaded_rows']:,} uploaded rows")
