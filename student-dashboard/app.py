@@ -98,18 +98,26 @@ except (FileNotFoundError, ValueError) as error:
     st.error(f"The uploaded dataset needs attention: {error}")
     st.stop()
 
-with st.sidebar:
-    st.markdown("---")
-    st.markdown('<div class="sidebar-step">02 / Focus the analysis</div>', unsafe_allow_html=True)
-    st.caption(f"{cleaning['cleaned_rows']:,} clean records · {cleaning['removed_rows']:,} removed")
-    if st.button("Reset filters"):
+st.markdown('<div class="section-label">Control the view</div>', unsafe_allow_html=True)
+filter_columns = st.columns([1.2, 1.2, 1, 0.65])
+with filter_columns[0]:
+    selected_grades = st.multiselect("Grade", sorted(data["grade"].unique()), key="grades_filter")
+with filter_columns[1]:
+    selected_genders = st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter")
+with filter_columns[2]:
+    selected_subject = st.selectbox("Subject", SUBJECTS, key="subject_filter")
+with filter_columns[3]:
+    st.markdown("&nbsp;", unsafe_allow_html=True)
+    if st.button("Reset", key="reset_filters"):
         st.session_state.grades_filter = []
         st.session_state.gender_filter = []
         st.session_state.subject_filter = SUBJECTS[0]
         st.rerun()
-    selected_grades = st.multiselect("Grade", sorted(data["grade"].unique()), key="grades_filter")
-    selected_genders = st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter")
-    selected_subject = st.selectbox("Subject", SUBJECTS, key="subject_filter")
+
+with st.sidebar:
+    st.markdown("---")
+    st.markdown('<div class="sidebar-step">02 / Dataset health</div>', unsafe_allow_html=True)
+    st.caption(f"{cleaning['cleaned_rows']:,} clean records · {cleaning['removed_rows']:,} removed")
     st.markdown('<div class="sidebar-step">03 / Take the cleaned file</div>', unsafe_allow_html=True)
     st.download_button(
         "Download cleaned CSV",
