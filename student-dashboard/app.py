@@ -56,6 +56,8 @@ st.markdown(
     h2 { font-size: 1.4rem; letter-spacing: -0.02em; }
     h3 { font-size: 1rem; letter-spacing: 0; }
     [data-testid="stAppViewContainer"] p, [data-testid="stAppViewContainer"] label, [data-testid="stAppViewContainer"] .stCaption, [data-testid="stAppViewContainer"] .stMarkdown { font-family: 'DM Sans', sans-serif; color: var(--ink); }
+    [data-testid="stAppViewContainer"] [data-testid="stMarkdownContainer"] *, [data-testid="stAppViewContainer"] [data-testid="stText"] { color: var(--ink) !important; }
+    [data-testid="stAppViewContainer"] h1, [data-testid="stAppViewContainer"] h2, [data-testid="stAppViewContainer"] h3, [data-testid="stAppViewContainer"] h4 { color: var(--ink) !important; }
     [data-testid="stAppViewContainer"] [data-testid="stTabs"] button p { color: var(--muted) !important; }
     [data-testid="stAppViewContainer"] [data-testid="stTabs"] button[aria-selected="true"] p { color: var(--coral) !important; }
     .hero-kicker { color: var(--coral); font: 700 0.75rem 'DM Sans', sans-serif; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.85rem; }
@@ -100,6 +102,7 @@ st.markdown(
     [data-testid="stFormSubmitButton"] button:not([kind="primary"]) { background: transparent; border-color: var(--line); color: var(--muted); }
     [data-testid="stFormSubmitButton"] button:not([kind="primary"]):hover { border-color: var(--ink); color: var(--ink); }
     [data-testid="stFormSubmitButton"] { margin-top: 0; }
+    [data-testid="stFormSubmitButton"] button[kind="primary"] *, [data-testid="stFormSubmitButton"] button[kind="primary"] p { color: #fffaf5 !important; }
     .control-actions { border-top: 1px solid var(--line); margin-top: 0.8rem; padding-top: 0.85rem; }
     .control-hint { color: var(--muted); font: 400 0.76rem 'DM Sans', sans-serif; padding-top: 0.55rem; }
     .control-heading { color: var(--ink); font: 700 1.05rem 'Space Grotesk', sans-serif; margin-bottom: 0.1rem; }
@@ -107,11 +110,12 @@ st.markdown(
     .control-state { color: var(--blue); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; padding-top: 0.35rem; }
     .data-table { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
     .data-table table { width: 100%; border-collapse: collapse; color: var(--ink); font: 0.82rem 'DM Sans', sans-serif; }
-    .data-table th { background: #172a3a; color: #fffaf5; font-weight: 700; letter-spacing: 0.03em; text-align: left; padding: 0.7rem 0.8rem; }
+    .data-table th, .data-table th * { background: #172a3a; color: #fffaf5 !important; font-weight: 700; letter-spacing: 0.03em; text-align: left; padding: 0.7rem 0.8rem; }
     .data-table td { color: var(--ink); border-top: 1px solid var(--line); padding: 0.65rem 0.8rem; }
     .data-table tr:nth-child(even) td { background: #f4f0ea; }
     .section-label { color: var(--coral); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.13em; text-transform: uppercase; margin: 1.7rem 0 0.35rem; }
     .insight { background: var(--ink); border-left: 4px solid var(--coral); color: #f4f0ea; padding: 1rem 1.2rem; border-radius: 3px; font: 500 0.9rem 'DM Sans', sans-serif; }
+    .insight, .insight * { color: #f4f0ea !important; }
     </style>
     <div class="hero-kicker">Academic analytics / uploaded cohort</div>
     <h1>Student performance,<br>made legible.</h1>
@@ -284,20 +288,21 @@ with insights:
     weakest_subject = subjects.iloc[-1]
     outliers = subject_outlier_summary(filtered)
     total_outliers = int(outliers["outliers"].sum())
+    leading_student = top_record["unique_name"].rsplit("_", 1)[0].title()
     insight_columns = st.columns(3)
-    insight_columns[0].metric("Leading student", top_record["unique_name"].replace("_", " "))
+    insight_columns[0].metric("Top student", leading_student)
     insight_columns[1].metric("Strongest subject", strongest_subject["subject"], f"{strongest_subject['average_score']:.1f} avg")
     insight_columns[2].metric("Priority subject", weakest_subject["subject"], f"{weakest_subject['pass_rate']:.1f}% pass rate")
     st.markdown(
-        f'<div class="insight">{top_record["unique_name"].replace("_", " ")} leads this filtered cohort with a total of {top_record["total"]:.0f}. '
-        f'{strongest_subject["subject"]} is the strongest subject by average score, while {weakest_subject["subject"]} is the clearest opportunity for support.</div>',
+        f'<div class="insight">{leading_student} is the highest-scoring student in the students currently shown, with {top_record["total"]:.0f} out of 300 total marks. '
+        f'{strongest_subject["subject"]} has the highest average score. {weakest_subject["subject"]} may benefit from extra classroom support.</div>',
         unsafe_allow_html=True,
     )
     gender_data = gender_summary(filtered)
     if len(gender_data) >= 2:
         leader = gender_data.iloc[0]
         runner_up = gender_data.iloc[1]
-        st.markdown(f"**Observed gender comparison:** {leader['gender']} has the higher average total in this filtered cohort ({leader['average_total']:.1f} vs {runner_up['average_total']:.1f}). This is an observed difference, not evidence of causation.")
+        st.markdown(f"**Gender comparison:** In the students currently shown, {leader['gender']} students have the higher average total ({leader['average_total']:.1f} compared with {runner_up['average_total']:.1f} for {runner_up['gender']}). This describes this dataset only; it does not explain why the difference exists.")
     first_row = st.columns(2)
     with first_row[0]:
         show_chart(gender_subject_comparison, filtered)
