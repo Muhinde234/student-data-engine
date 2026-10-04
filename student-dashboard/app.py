@@ -83,6 +83,12 @@ st.markdown(
     [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #243d50; border-color: #486073; }
     [data-testid="stSidebar"] [data-testid="stMultiSelect"] span { background: #e56b56; border: 0; }
     [data-testid="stDataFrame"] { border: 1px solid var(--line); }
+    [data-testid="stFileUploader"] label { color: var(--ink) !important; font-weight: 700 !important; }
+    [data-testid="stFileUploader"] section { background: #f4f0ea; border: 1px dashed #9aa6ad; border-radius: 4px; }
+    [data-testid="stFileUploader"] section > div { color: var(--ink) !important; }
+    [data-testid="stFileUploader"] button { background: var(--coral) !important; border-color: var(--coral) !important; color: #fffaf5 !important; }
+    [data-testid="stFileUploader"] button p, [data-testid="stFileUploader"] button span { color: #fffaf5 !important; }
+    [data-testid="stFileUploader"] small, [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzoneInstructions"] { color: var(--muted) !important; }
     .js-plotly-plot .plotly .modebar { opacity: 1 !important; visibility: visible !important; }
     .js-plotly-plot .plotly .modebar-group { background: rgba(251, 248, 243, 0.92); border-radius: 4px; }
     .js-plotly-plot .plotly .modebar-btn path { fill: #172a3a !important; }
