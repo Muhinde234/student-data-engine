@@ -47,6 +47,24 @@ st.markdown(
         --coral: #e56b56;
         --blue: #2f6690;
     }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --paper: #111820;
+            --surface: #1b2630;
+            --ink: #edf3f4;
+            --muted: #b5c1c5;
+            --line: #3c4a53;
+            --blue: #8fc5e5;
+        }
+    }
+    [data-theme="dark"] {
+        --paper: #111820;
+        --surface: #1b2630;
+        --ink: #edf3f4;
+        --muted: #b5c1c5;
+        --line: #3c4a53;
+        --blue: #8fc5e5;
+    }
     .stApp { background: var(--paper); color: var(--ink); }
     [data-testid="stHeader"] { background: rgba(244, 240, 234, 0.88); }
     [data-testid="stAppViewContainer"] > .main { background: var(--paper); }
@@ -71,16 +89,18 @@ st.markdown(
     [data-testid="stTabs"] button[aria-selected="true"] { color: var(--ink); }
     [data-testid="stTabs"] button[aria-selected="true"] p { color: var(--coral) !important; }
     [data-testid="stSidebar"] { background: var(--ink); border-right: 0; }
-    [data-testid="stSidebar"] * { color: #f4f0ea; }
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #b7c2c8; }
+    [data-testid="stSidebar"] * { color: #f4f0ea !important; }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] *, [data-testid="stSidebar"] p, [data-testid="stSidebar"] label { color: #f4f0ea !important; }
+    [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] small { color: #b7c2c8 !important; }
     [data-testid="stSidebar"] .sidebar-brand { color: #f4f0ea; font: 700 1.45rem 'Space Grotesk', sans-serif; letter-spacing: -0.04em; line-height: 0.9; }
-    [data-testid="stSidebar"] .sidebar-brand span { color: var(--coral); }
-    [data-testid="stSidebar"] .sidebar-step { color: #e56b56; font: 700 0.68rem 'DM Sans', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin: 1.4rem 0 0.45rem; }
+    [data-testid="stSidebar"] .sidebar-brand span { color: var(--coral) !important; }
+    [data-testid="stSidebar"] .sidebar-step { color: #e56b56 !important; font: 700 0.68rem 'DM Sans', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin: 1.4rem 0 0.45rem; }
     [data-testid="stSidebar"] .sidebar-status { background: #243d50; border: 1px solid #486073; border-radius: 4px; padding: 0.8rem 0.9rem; margin: 0.8rem 0 1rem; }
-    [data-testid="stSidebar"] .sidebar-status strong { display: block; color: #f4f0ea; font: 600 0.9rem 'DM Sans', sans-serif; }
-    [data-testid="stSidebar"] .sidebar-status small { color: #b7c2c8; font: 400 0.75rem 'DM Sans', sans-serif; }
-    [data-testid="stSidebar"] .stButton button { width: 100%; background: transparent; color: #f4f0ea; border: 1px solid #486073; }
-    [data-testid="stSidebar"] .stButton button:hover { border-color: var(--coral); color: #f4f0ea; }
+    [data-testid="stSidebar"] .sidebar-status strong { display: block; color: #f4f0ea !important; font: 600 0.9rem 'DM Sans', sans-serif; }
+    [data-testid="stSidebar"] .sidebar-status small { color: #b7c2c8 !important; font: 400 0.75rem 'DM Sans', sans-serif; }
+    [data-testid="stSidebar"] .stButton button, [data-testid="stSidebar"] .stDownloadButton button { width: 100%; background: transparent; color: #f4f0ea !important; border: 1px solid #486073; }
+    [data-testid="stSidebar"] .stButton button *, [data-testid="stSidebar"] .stDownloadButton button * { color: #f4f0ea !important; }
+    [data-testid="stSidebar"] .stButton button:hover, [data-testid="stSidebar"] .stDownloadButton button:hover { border-color: var(--coral); color: #f4f0ea !important; }
     [data-testid="stSidebar"] [data-testid="stSelectbox"] label, [data-testid="stSidebar"] [data-testid="stMultiSelect"] label { color: #f4f0ea; font-weight: 600; }
     [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #243d50; border-color: #486073; }
     [data-testid="stSidebar"] [data-testid="stMultiSelect"] span { background: #e56b56; border: 0; }
@@ -113,12 +133,36 @@ st.markdown(
     .data-table th, .data-table th * { background: #172a3a; color: #fffaf5 !important; font-weight: 700; letter-spacing: 0.03em; text-align: left; padding: 0.7rem 0.8rem; }
     .data-table td { color: var(--ink); border-top: 1px solid var(--line); padding: 0.65rem 0.8rem; }
     .data-table tr:nth-child(even) td { background: #f4f0ea; }
+    @media (prefers-color-scheme: dark) {
+        .data-table tr:nth-child(even) td { background: #24313a; }
+        [data-testid="stFileUploader"] section { background: #1b2630; border-color: #6f858f; }
+        [data-testid="stDataFrame"] { border-color: #3c4a53; }
+    }
+    [data-theme="dark"] .data-table tr:nth-child(even) td { background: #24313a; }
+    [data-theme="dark"] [data-testid="stFileUploader"] section { background: #1b2630; border-color: #6f858f; }
+    @media (max-width: 900px) {
+        .block-container { padding: 2rem 1.2rem 3rem; }
+        h1 { font-size: 2.7rem; }
+        .hero-copy { font-size: 0.95rem; margin-bottom: 1.5rem; }
+        [data-testid="stTabs"] [role="tablist"] { gap: 0.7rem; overflow-x: auto; }
+        [data-testid="stTabs"] button { white-space: nowrap; font-size: 0.78rem; }
+        .control-state { text-align: left; padding-top: 0; margin-top: 0.5rem; }
+        .data-table table { min-width: 560px; }
+    }
+    @media (max-width: 600px) {
+        .block-container { padding: 1.4rem 0.8rem 2rem; }
+        h1 { font-size: 2.15rem; }
+        .hero-kicker { font-size: 0.65rem; }
+        .hero-copy { font-size: 0.88rem; }
+        [data-testid="stSidebar"] { min-width: 15rem; max-width: 18rem; }
+        [data-testid="stFormSubmitButton"] button { min-height: 2.5rem; }
+    }
     .section-label { color: var(--coral); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.13em; text-transform: uppercase; margin: 1.7rem 0 0.35rem; }
     .insight { background: var(--ink); border-left: 4px solid var(--coral); color: #f4f0ea; padding: 1rem 1.2rem; border-radius: 3px; font: 500 0.9rem 'DM Sans', sans-serif; }
     .insight, .insight * { color: #f4f0ea !important; }
     </style>
     <div class="hero-kicker">Academic analytics / uploaded cohort</div>
-    <h1>Student performance,<br>made legible.</h1>
+    <h1>Student performance, made legible.</h1>
     <div class="hero-copy">A clear read on your exam records, from grade-level trends to the students setting the pace.</div>
     <div class="hero-rule"></div>
     """,
