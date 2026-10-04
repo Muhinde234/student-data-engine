@@ -14,22 +14,23 @@ def polish(figure: go.Figure) -> go.Figure:
     figure.update_layout(
         autosize=True,
         height=390,
-        margin=dict(l=12, r=12, t=24, b=12),
+        margin=dict(l=18, r=18, t=58, b=24),
         font=dict(family=CHART_FONT, color="#263238", size=12),
+        title_font=dict(family="Space Grotesk, sans-serif", color="#172A3A", size=16),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#FBF8F3",
         showlegend=False,
         hoverlabel=dict(bgcolor="#172A3A", font=dict(color="#FFFFFF", family=CHART_FONT)),
     )
-    figure.update_xaxes(showgrid=False, linecolor="#D9D4CC", tickfont=dict(color="#65727C"))
-    figure.update_yaxes(gridcolor="#E8E3DB", zeroline=False, tickfont=dict(color="#65727C"))
+    figure.update_xaxes(showgrid=False, linecolor="#D9D4CC", tickfont=dict(color="#263238"), title_font=dict(color="#172A3A"))
+    figure.update_yaxes(gridcolor="#E8E3DB", zeroline=False, tickfont=dict(color="#263238"), title_font=dict(color="#172A3A"))
     return figure
 
 
 def score_histogram(data: pd.DataFrame, subject: str) -> go.Figure:
     """Show the selected subject's score distribution."""
     figure = px.histogram(data, x=subject, nbins=20, color_discrete_sequence=["#2F6690"])
-    figure.update_layout(title=f"Most {subject.title()} scores cluster in this range")
+    figure.update_layout(title=dict(text=f"{subject.title()} score distribution", subtitle=dict(text="How many students fall within each score range")))
     return polish(figure)
 
 
@@ -37,7 +38,7 @@ def average_total_by_grade(data: pd.DataFrame) -> go.Figure:
     """Show how average total changes across grades."""
     averages = data.groupby("grade", as_index=False)["total"].mean()
     figure = px.line(averages, x="grade", y="total", markers=True, color_discrete_sequence=["#2F6690"])
-    figure.update_layout(title="Average total changes across grades")
+    figure.update_layout(title=dict(text="Average total by grade", subtitle=dict(text="Mean combined score for each grade")))
     figure.update_traces(line=dict(width=3), marker=dict(size=8))
     return polish(figure)
 
@@ -45,7 +46,7 @@ def average_total_by_grade(data: pd.DataFrame) -> go.Figure:
 def total_by_gender(data: pd.DataFrame) -> go.Figure:
     """Compare total score distributions across gender labels."""
     figure = px.box(data, x="gender", y="total", color="gender", color_discrete_sequence=["#2F6690", "#4C956C", "#E0A458"])
-    figure.update_layout(title="Total score spread differs across gender groups")
+    figure.update_layout(title=dict(text="Total score spread by gender", subtitle=dict(text="Median and score range for each group")))
     return polish(figure)
 
 
@@ -53,7 +54,7 @@ def band_chart(bands: pd.DataFrame) -> go.Figure:
     """Show subject performance bands as a stacked bar chart."""
     long = bands.reset_index(names="subject").melt(id_vars="subject", var_name="band", value_name="students")
     figure = px.bar(long, x="subject", y="students", color="band", barmode="stack", color_discrete_map=PALETTE)
-    figure.update_layout(title="Pass and higher performance make up these subject totals")
+    figure.update_layout(title=dict(text="Performance bands by subject", subtitle=dict(text="Students grouped by score level")))
     figure.update_layout(showlegend=True, legend=dict(orientation="h", y=1.08, x=0))
     return polish(figure)
 
@@ -62,7 +63,7 @@ def correlation_heatmap(data: pd.DataFrame) -> go.Figure:
     """Show correlations between subject scores."""
     correlation = data[["math", "science", "english"]].corr()
     figure = px.imshow(correlation, text_auto=".2f", zmin=-1, zmax=1, color_continuous_scale="Blues")
-    figure.update_layout(title="Subject scores have these relationships")
+    figure.update_layout(title=dict(text="Subject score relationships", subtitle=dict(text="Correlation between Math, Science, and English")))
     return polish(figure)
 
 
@@ -79,7 +80,7 @@ def gender_subject_comparison(data: pd.DataFrame) -> go.Figure:
         color_discrete_sequence=["#E56B56", "#2F6690", "#E0A458"],
     )
     figure.update_layout(
-        title="Average subject scores by gender",
+        title=dict(text="Average subject scores by gender", subtitle=dict(text="Observed mean scores for each group")),
         yaxis_title="Average score",
         showlegend=True,
         legend=dict(orientation="h", y=1.08, x=0, title=None),
@@ -94,5 +95,5 @@ def subject_outcomes(data: pd.DataFrame) -> go.Figure:
     long = outcomes.melt(id_vars="subject", var_name="measure", value_name="value")
     long["measure"] = long["measure"].replace({"average_score": "Average score", "pass_rate": "Pass rate"})
     figure = px.bar(long, x="subject", y="value", color="measure", barmode="group", color_discrete_sequence=["#2F6690", "#E56B56"])
-    figure.update_layout(title="Subject health: score and pass rate", yaxis_title="Percent / score")
+    figure.update_layout(title=dict(text="Subject health: score and pass rate", subtitle=dict(text="Average mark compared with the 40-point pass threshold")), yaxis_title="Percent / score")
     return polish(figure)

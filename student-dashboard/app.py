@@ -51,11 +51,13 @@ st.markdown(
     [data-testid="stHeader"] { background: rgba(244, 240, 234, 0.88); }
     [data-testid="stAppViewContainer"] > .main { background: var(--paper); }
     .block-container { max-width: 1440px; padding: 3.5rem 4rem 4rem; }
-    h1, h2, h3, [data-testid="stMetricValue"] { font-family: 'Space Grotesk', sans-serif; color: var(--ink); }
+    .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp [data-testid="stMetricValue"] { font-family: 'Space Grotesk', sans-serif; color: var(--ink) !important; }
     h1 { font-size: clamp(2.5rem, 4vw, 4.6rem); letter-spacing: -0.04em; line-height: 0.98; margin-bottom: 0.65rem; }
     h2 { font-size: 1.4rem; letter-spacing: -0.02em; }
     h3 { font-size: 1rem; letter-spacing: 0; }
-    p, label, .stCaption, .stMarkdown { font-family: 'DM Sans', sans-serif; }
+    [data-testid="stAppViewContainer"] p, [data-testid="stAppViewContainer"] label, [data-testid="stAppViewContainer"] .stCaption, [data-testid="stAppViewContainer"] .stMarkdown { font-family: 'DM Sans', sans-serif; color: var(--ink); }
+    [data-testid="stAppViewContainer"] [data-testid="stTabs"] button p { color: var(--muted) !important; }
+    [data-testid="stAppViewContainer"] [data-testid="stTabs"] button[aria-selected="true"] p { color: var(--coral) !important; }
     .hero-kicker { color: var(--coral); font: 700 0.75rem 'DM Sans', sans-serif; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 0.85rem; }
     .hero-copy { color: var(--muted); font-size: 1.05rem; margin-bottom: 2.25rem; max-width: 620px; }
     .hero-rule { border-top: 1px solid var(--line); margin: 0 0 1.4rem; }
@@ -65,7 +67,7 @@ st.markdown(
     [data-testid="stTabs"] [role="tablist"] { gap: 1.5rem; border-bottom: 1px solid var(--line); }
     [data-testid="stTabs"] button { color: var(--muted); font: 600 0.86rem 'DM Sans', sans-serif; padding: 0.75rem 0.15rem; }
     [data-testid="stTabs"] button[aria-selected="true"] { color: var(--ink); }
-    [data-testid="stTabs"] button[aria-selected="true"] p { color: var(--coral); }
+    [data-testid="stTabs"] button[aria-selected="true"] p { color: var(--coral) !important; }
     [data-testid="stSidebar"] { background: var(--ink); border-right: 0; }
     [data-testid="stSidebar"] * { color: #f4f0ea; }
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #b7c2c8; }
@@ -97,6 +99,11 @@ st.markdown(
     .control-heading { color: var(--ink); font: 700 1.05rem 'Space Grotesk', sans-serif; margin-bottom: 0.1rem; }
     .control-caption { color: var(--muted); font: 400 0.8rem 'DM Sans', sans-serif; }
     .control-state { color: var(--blue); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.08em; text-transform: uppercase; text-align: right; padding-top: 0.35rem; }
+    .data-table { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+    .data-table table { width: 100%; border-collapse: collapse; color: var(--ink); font: 0.82rem 'DM Sans', sans-serif; }
+    .data-table th { background: #172a3a; color: #fffaf5; font-weight: 700; letter-spacing: 0.03em; text-align: left; padding: 0.7rem 0.8rem; }
+    .data-table td { color: var(--ink); border-top: 1px solid var(--line); padding: 0.65rem 0.8rem; }
+    .data-table tr:nth-child(even) td { background: #f4f0ea; }
     .section-label { color: var(--coral); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.13em; text-transform: uppercase; margin: 1.7rem 0 0.35rem; }
     .insight { background: var(--ink); border-left: 4px solid var(--coral); color: #f4f0ea; padding: 1rem 1.2rem; border-radius: 3px; font: 500 0.9rem 'DM Sans', sans-serif; }
     </style>
@@ -293,9 +300,9 @@ with insights:
     st.markdown('<div class="section-label">Data confidence</div>', unsafe_allow_html=True)
     st.metric("Subject score outliers", f"{total_outliers}", "IQR method")
     st.caption("Scores at 0 and 100 remain valid marks. Outliers are statistical flags, not automatic errors.")
-    st.dataframe(outliers, width="stretch", hide_index=True)
+    st.markdown(f'<div class="data-table">{outliers.to_html(index=False, float_format=lambda value: f"{value:.1f}")}</div>', unsafe_allow_html=True)
     st.subheader("Subject health")
-    st.dataframe(subjects, width="stretch", hide_index=True)
+    st.markdown(f'<div class="data-table">{subjects.to_html(index=False, float_format=lambda value: f"{value:.1f}")}</div>', unsafe_allow_html=True)
 
 with charts:
     st.markdown('<div class="section-label">Explore the distributions</div>', unsafe_allow_html=True)
