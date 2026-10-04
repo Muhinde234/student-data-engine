@@ -1,6 +1,6 @@
 import pandas as pd
 
-from metrics import failing_any_rate, passing_all_rate, performance_bands, ranked_students
+from metrics import failing_any_rate, passing_all_rate, performance_bands, ranked_students, subject_outlier_summary, subject_summary
 
 
 def sample_data() -> pd.DataFrame:
@@ -23,3 +23,11 @@ def test_band_counts():
     assert bands.loc["math", "Excellent"] == 1
     assert bands.loc["math", "Pass"] == 1
     assert bands.loc["math", "Fail"] == 1
+
+
+def test_subject_summary_and_outlier_summary():
+    data = sample_data()
+    summary = subject_summary(data)
+    outliers = subject_outlier_summary(data)
+    assert summary.iloc[0]["subject"] == "Math"
+    assert outliers["outliers"].sum() == 0

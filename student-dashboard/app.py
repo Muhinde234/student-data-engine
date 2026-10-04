@@ -2,7 +2,7 @@ import streamlit as st
 
 from charts import average_total_by_grade, band_chart, correlation_heatmap, gender_subject_comparison, score_histogram, subject_outcomes, total_by_gender
 from data import SUBJECTS, load_uploaded_data, validate_data
-from metrics import failing_any_rate, gender_summary, passing_all_rate, performance_bands, ranked_students, subject_summary, top_student_per_grade
+from metrics import failing_any_rate, gender_summary, passing_all_rate, performance_bands, ranked_students, subject_outlier_summary, subject_summary, top_student_per_grade
 
 
 def show_chart(chart_function, data, *arguments):
@@ -269,6 +269,8 @@ with insights:
     subjects = subject_summary(filtered)
     strongest_subject = subjects.iloc[0]
     weakest_subject = subjects.iloc[-1]
+    outliers = subject_outlier_summary(filtered)
+    total_outliers = int(outliers["outliers"].sum())
     insight_columns = st.columns(3)
     insight_columns[0].metric("Leading student", top_record["unique_name"].replace("_", " "))
     insight_columns[1].metric("Strongest subject", strongest_subject["subject"], f"{strongest_subject['average_score']:.1f} avg")
@@ -288,6 +290,10 @@ with insights:
         show_chart(gender_subject_comparison, filtered)
     with first_row[1]:
         show_chart(subject_outcomes, filtered)
+    st.markdown('<div class="section-label">Data confidence</div>', unsafe_allow_html=True)
+    st.metric("Subject score outliers", f"{total_outliers}", "IQR method")
+    st.caption("Scores at 0 and 100 remain valid marks. Outliers are statistical flags, not automatic errors.")
+    st.dataframe(outliers, width="stretch", hide_index=True)
     st.subheader("Subject health")
     st.dataframe(subjects, width="stretch", hide_index=True)
 

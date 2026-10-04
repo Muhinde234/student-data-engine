@@ -78,7 +78,12 @@ def gender_subject_comparison(data: pd.DataFrame) -> go.Figure:
         barmode="group",
         color_discrete_sequence=["#E56B56", "#2F6690", "#E0A458"],
     )
-    figure.update_layout(title="Average subject scores by gender", yaxis_title="Average score")
+    figure.update_layout(
+        title="Average subject scores by gender",
+        yaxis_title="Average score",
+        showlegend=True,
+        legend=dict(orientation="h", y=1.08, x=0, title=None),
+    )
     return polish(figure)
 
 

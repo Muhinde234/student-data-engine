@@ -73,3 +73,24 @@ def grade_summary(data: pd.DataFrame) -> pd.DataFrame:
     summary = grouped.agg(students=("student_id", "size"), average_total=("total", "mean"))
     summary["passing_all"] = grouped[SUBJECTS].apply(lambda group: group.ge(40).all(axis=1).mean() * 100)
     return summary.reset_index()
+
+
+def subject_outlier_summary(data: pd.DataFrame) -> pd.DataFrame:
+    """Count IQR outliers and report valid score bounds for each subject."""
+    rows = []
+    for subject in SUBJECTS:
+        scores = data[subject]
+        q1 = scores.quantile(0.25)
+        q3 = scores.quantile(0.75)
+        iqr = q3 - q1
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
+        rows.append(
+            {
+                "subject": subject.title(),
+                "outliers": int(((scores < lower) | (scores > upper)).sum()),
+                "minimum": float(scores.min()),
+                "maximum": float(scores.max()),
+            }
+        )
+    return pd.DataFrame(rows)
