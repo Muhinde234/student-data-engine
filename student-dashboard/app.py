@@ -327,6 +327,7 @@ with charts:
     st.markdown('<div class="section-label">Charts</div>', unsafe_allow_html=True)
     first_row = st.columns(2)
     with first_row[0]:
+        st.caption(f"Each bar shows how many students scored within a ten-mark range in {selected_subject.title()}.")
         show_chart(score_histogram, filtered, selected_subject)
     with first_row[1]:
         show_chart(total_by_gender, filtered)

@@ -28,9 +28,20 @@ def polish(figure: go.Figure) -> go.Figure:
 
 
 def score_histogram(data: pd.DataFrame, subject: str) -> go.Figure:
-    """Show the selected subject's score distribution."""
-    figure = px.histogram(data, x=subject, nbins=20, color_discrete_sequence=["#2F6690"])
-    figure.update_layout(title=dict(text=f"{subject.title()} score distribution", subtitle=dict(text="How many students fall within each score range")))
+    """Show student counts across clearly named ten-mark ranges."""
+    bins = list(range(0, 101, 10)) + [101]
+    labels = [f"{start}-{start + 9}" for start in range(0, 90, 10)] + ["90-100"]
+    ranges = pd.cut(data[subject], bins=bins, labels=labels, include_lowest=True, right=False)
+    counts = ranges.value_counts().reindex(labels, fill_value=0).rename_axis("mark_range").reset_index(name="students")
+    figure = px.bar(counts, x="mark_range", y="students", text="students", color_discrete_sequence=["#2F6690"])
+    average = data[subject].mean()
+    figure.update_layout(
+        title=dict(text=f"How {subject.title()} marks are spread", subtitle=dict(text="Each bar shows the number of students in a ten-mark range")),
+        xaxis_title="Mark range",
+        yaxis_title="Number of students",
+    )
+    figure.update_traces(textposition="outside", hovertemplate="Mark range: %{x}<br>Students: %{y}<extra></extra>")
+    figure.add_annotation(x=0.98, y=1.08, xref="paper", yref="paper", text=f"Average mark: {average:.1f}", showarrow=False, font=dict(color="#E56B56", size=12))
     return polish(figure)
 
 
