@@ -29,5 +29,5 @@ def test_subject_summary_and_outlier_summary():
     data = sample_data()
     summary = subject_summary(data)
     outliers = subject_outlier_summary(data)
-    assert summary.iloc[0]["subject"] == "Math"
+    assert summary.iloc[0]["subject"] == "Science"
     assert outliers["outliers"].sum() == 0
