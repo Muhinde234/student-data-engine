@@ -47,24 +47,6 @@ st.markdown(
         --coral: #e56b56;
         --blue: #2f6690;
     }
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --paper: #111820;
-            --surface: #1b2630;
-            --ink: #edf3f4;
-            --muted: #b5c1c5;
-            --line: #3c4a53;
-            --blue: #8fc5e5;
-        }
-    }
-    [data-theme="dark"] {
-        --paper: #111820;
-        --surface: #1b2630;
-        --ink: #edf3f4;
-        --muted: #b5c1c5;
-        --line: #3c4a53;
-        --blue: #8fc5e5;
-    }
     .stApp { background: var(--paper); color: var(--ink); }
     [data-testid="stHeader"] { background: rgba(244, 240, 234, 0.88); }
     [data-testid="stAppViewContainer"] > .main { background: var(--paper); }
@@ -88,22 +70,22 @@ st.markdown(
     [data-testid="stTabs"] button { color: var(--muted); font: 600 0.86rem 'DM Sans', sans-serif; padding: 0.75rem 0.15rem; }
     [data-testid="stTabs"] button[aria-selected="true"] { color: var(--ink); }
     [data-testid="stTabs"] button[aria-selected="true"] p { color: var(--coral) !important; }
-    [data-testid="stSidebar"] { background: var(--ink); border-right: 0; }
-    [data-testid="stSidebar"] * { color: #f4f0ea !important; }
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] *, [data-testid="stSidebar"] p, [data-testid="stSidebar"] label { color: #f4f0ea !important; }
-    [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] small { color: #b7c2c8 !important; }
-    [data-testid="stSidebar"] .sidebar-brand { color: #f4f0ea; font: 700 1.45rem 'Space Grotesk', sans-serif; letter-spacing: -0.04em; line-height: 0.9; }
+    [data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--line); }
+    [data-testid="stSidebar"] * { color: var(--ink) !important; }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] *, [data-testid="stSidebar"] p, [data-testid="stSidebar"] label { color: var(--ink) !important; }
+    [data-testid="stSidebar"] .stCaption, [data-testid="stSidebar"] small { color: var(--muted) !important; }
+    [data-testid="stSidebar"] .sidebar-brand { color: var(--ink) !important; font: 700 1.45rem 'Space Grotesk', sans-serif; letter-spacing: -0.04em; line-height: 0.9; }
     [data-testid="stSidebar"] .sidebar-brand span { color: var(--coral) !important; }
     [data-testid="stSidebar"] .sidebar-step { color: #e56b56 !important; font: 700 0.68rem 'DM Sans', sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin: 1.4rem 0 0.45rem; }
-    [data-testid="stSidebar"] .sidebar-status { background: #243d50; border: 1px solid #486073; border-radius: 4px; padding: 0.8rem 0.9rem; margin: 0.8rem 0 1rem; }
-    [data-testid="stSidebar"] .sidebar-status strong { display: block; color: #f4f0ea !important; font: 600 0.9rem 'DM Sans', sans-serif; }
-    [data-testid="stSidebar"] .sidebar-status small { color: #b7c2c8 !important; font: 400 0.75rem 'DM Sans', sans-serif; }
-    [data-testid="stSidebar"] .stButton button, [data-testid="stSidebar"] .stDownloadButton button { width: 100%; background: transparent; color: #f4f0ea !important; border: 1px solid #486073; }
-    [data-testid="stSidebar"] .stButton button *, [data-testid="stSidebar"] .stDownloadButton button * { color: #f4f0ea !important; }
-    [data-testid="stSidebar"] .stButton button:hover, [data-testid="stSidebar"] .stDownloadButton button:hover { border-color: var(--coral); color: #f4f0ea !important; }
+    [data-testid="stSidebar"] .sidebar-status { background: #f4f0ea; border: 1px solid var(--line); border-radius: 4px; padding: 0.8rem 0.9rem; margin: 0.8rem 0 1rem; }
+    [data-testid="stSidebar"] .sidebar-status strong { display: block; color: var(--ink) !important; font: 600 0.9rem 'DM Sans', sans-serif; }
+    [data-testid="stSidebar"] .sidebar-status small { color: var(--muted) !important; font: 400 0.75rem 'DM Sans', sans-serif; }
+    [data-testid="stSidebar"] .stButton button, [data-testid="stSidebar"] .stDownloadButton button { width: 100%; background: transparent; color: var(--ink) !important; border: 1px solid var(--line); }
+    [data-testid="stSidebar"] .stButton button *, [data-testid="stSidebar"] .stDownloadButton button * { color: var(--ink) !important; }
+    [data-testid="stSidebar"] .stButton button:hover, [data-testid="stSidebar"] .stDownloadButton button:hover { border-color: var(--coral); color: var(--ink) !important; }
     [data-testid="stSidebar"] [data-testid="stSelectbox"] label, [data-testid="stSidebar"] [data-testid="stMultiSelect"] label { color: #f4f0ea; font-weight: 600; }
-    [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #243d50; border-color: #486073; }
-    [data-testid="stSidebar"] [data-testid="stMultiSelect"] span { background: #e56b56; border: 0; }
+    [data-testid="stSidebar"] [data-baseweb="select"] > div { background: var(--paper); border-color: var(--line); }
+    [data-testid="stSidebar"] [data-testid="stMultiSelect"] span { background: #e56b56; border: 0; color: #fffaf5 !important; }
     [data-testid="stDataFrame"] { border: 1px solid var(--line); }
     [data-testid="stFileUploader"] label { color: var(--ink) !important; font-weight: 700 !important; }
     [data-testid="stFileUploader"] section { background: #f4f0ea; border: 1px dashed #9aa6ad; border-radius: 4px; }
@@ -133,37 +115,19 @@ st.markdown(
     .data-table th, .data-table th * { background: #172a3a; color: #fffaf5 !important; font-weight: 700; letter-spacing: 0.03em; text-align: left; padding: 0.7rem 0.8rem; }
     .data-table td { color: var(--ink); border-top: 1px solid var(--line); padding: 0.65rem 0.8rem; }
     .data-table tr:nth-child(even) td { background: #f4f0ea; }
-    @media (prefers-color-scheme: dark) {
-        .data-table tr:nth-child(even) td { background: #24313a; }
-        [data-testid="stFileUploader"] section { background: #1b2630; border-color: #6f858f; }
-        [data-testid="stDataFrame"] { border-color: #3c4a53; }
-    }
-    [data-theme="dark"] .data-table tr:nth-child(even) td { background: #24313a; }
-    [data-theme="dark"] [data-testid="stFileUploader"] section { background: #1b2630; border-color: #6f858f; }
-    @media (max-width: 900px) {
-        .block-container { padding: 2rem 1.2rem 3rem; }
-        h1 { font-size: 2.7rem; }
-        .hero-copy { font-size: 0.95rem; margin-bottom: 1.5rem; }
-        [data-testid="stTabs"] [role="tablist"] { gap: 0.7rem; overflow-x: auto; }
-        [data-testid="stTabs"] button { white-space: nowrap; font-size: 0.78rem; }
-        .control-state { text-align: left; padding-top: 0; margin-top: 0.5rem; }
-        .data-table table { min-width: 560px; }
-    }
-    @media (max-width: 600px) {
-        .block-container { padding: 1.4rem 0.8rem 2rem; }
-        h1 { font-size: 2.15rem; }
-        .hero-kicker { font-size: 0.65rem; }
-        .hero-copy { font-size: 0.88rem; }
-        [data-testid="stSidebar"] { min-width: 15rem; max-width: 18rem; }
-        [data-testid="stFormSubmitButton"] button { min-height: 2.5rem; }
-    }
     .section-label { color: var(--coral); font: 700 0.7rem 'DM Sans', sans-serif; letter-spacing: 0.13em; text-transform: uppercase; margin: 1.7rem 0 0.35rem; }
     .insight { background: var(--ink); border-left: 4px solid var(--coral); color: #f4f0ea; padding: 1rem 1.2rem; border-radius: 3px; font: 500 0.9rem 'DM Sans', sans-serif; }
     .insight, .insight * { color: #f4f0ea !important; }
+    [data-testid="stAppViewContainer"] * { color: var(--ink) !important; }
+    [data-testid="stAppViewContainer"] .insight, [data-testid="stAppViewContainer"] .insight * { color: #f4f0ea !important; }
+    [data-testid="stAppViewContainer"] [data-testid="stFileUploader"] button, [data-testid="stAppViewContainer"] [data-testid="stFileUploader"] button * { color: #fffaf5 !important; }
+    [data-testid="stAppViewContainer"] [data-testid="stFormSubmitButton"] button[kind="primary"], [data-testid="stAppViewContainer"] [data-testid="stFormSubmitButton"] button[kind="primary"] * { color: #fffaf5 !important; }
+    [data-testid="stAppViewContainer"] [data-testid="stTabs"] button[aria-selected="true"], [data-testid="stAppViewContainer"] [data-testid="stTabs"] button[aria-selected="true"] p { color: var(--coral) !important; }
+    [data-testid="stAppViewContainer"] .data-table th, [data-testid="stAppViewContainer"] .data-table th * { color: #fffaf5 !important; }
     </style>
-    <div class="hero-kicker">Academic analytics / uploaded cohort</div>
-    <h1>Student performance, made legible.</h1>
-    <div class="hero-copy">A clear read on your exam records, from grade-level trends to the students setting the pace.</div>
+    <div class="hero-kicker">Student results</div>
+    <h1>Student performance report</h1>
+    <div class="hero-copy">Review exam results by grade, subject, gender, and student.</div>
     <div class="hero-rule"></div>
     """,
     unsafe_allow_html=True,
@@ -171,10 +135,10 @@ st.markdown(
 
 with st.sidebar:
     st.markdown('<div class="sidebar-brand">STUDENT<br><span>SIGNAL</span></div>', unsafe_allow_html=True)
-    st.caption("School performance workspace")
+    st.caption("School performance dashboard")
     st.markdown("---")
-    st.markdown('<div class="sidebar-step">01 / Dataset workspace</div>', unsafe_allow_html=True)
-    st.caption("Upload and analyze from the main workspace.")
+    st.markdown('<div class="sidebar-step">01 / Upload data</div>', unsafe_allow_html=True)
+    st.caption("Upload files from the main page.")
 
 if "uploaded_files" not in st.session_state:
     st.session_state.uploaded_files = None
@@ -206,7 +170,7 @@ with st.sidebar:
         )
 
 if not uploaded_files:
-    st.markdown('<div class="section-label">Ready when you are</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Upload data</div>', unsafe_allow_html=True)
     st.info("Upload one or more CSV files above to automatically clean and analyze your student data.")
     st.markdown("""
     **Accepted automatically**
@@ -236,7 +200,7 @@ with st.container(border=True):
     heading_columns = st.columns([1.6, 1])
     with heading_columns[0]:
         st.markdown('<div class="control-heading">Analysis controls</div>', unsafe_allow_html=True)
-        st.markdown('<div class="control-caption">Shape the cohort before reading the results.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="control-caption">Choose filters to update the report.</div>', unsafe_allow_html=True)
     with heading_columns[1]:
         active_count = len(st.session_state.applied_grades) + len(st.session_state.applied_genders)
         state_label = "Full cohort" if active_count == 0 else f"{active_count} filters active"
@@ -307,10 +271,10 @@ with overview:
     kpis[1].metric("Average total", f"{filtered['total'].mean():.1f}")
     kpis[2].metric("Passing all 3", f"{passing_all_rate(filtered):.1f}%")
     kpis[3].metric("Failing at least one", f"{failing_any_rate(filtered):.1f}%")
-    st.markdown('<div class="section-label">Cohort trajectory</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Results by grade</div>', unsafe_allow_html=True)
     st.subheader("Average total by grade")
     show_chart(average_total_by_grade, filtered)
-    st.markdown('<div class="insight">The overview follows the cohort from grade 1 to grade 12. Use the analysis controls above to isolate a group and update every view.</div>', unsafe_allow_html=True)
+    st.markdown('<div class="insight">Use the controls above to view results for selected grades or genders.</div>', unsafe_allow_html=True)
 
 with top_students:
     st.markdown('<div class="section-label">Leaderboard</div>', unsafe_allow_html=True)
@@ -324,8 +288,8 @@ with top_students:
     st.dataframe(top_student_per_grade(filtered), width="stretch", hide_index=True)
 
 with insights:
-    st.markdown('<div class="section-label">Decision support</div>', unsafe_allow_html=True)
-    st.subheader("What deserves attention?")
+    st.markdown('<div class="section-label">Summary</div>', unsafe_allow_html=True)
+    st.subheader("Key findings")
     top_record = ranked_students(filtered).iloc[0]
     subjects = subject_summary(filtered)
     strongest_subject = subjects.iloc[0]
@@ -352,7 +316,7 @@ with insights:
         show_chart(gender_subject_comparison, filtered)
     with first_row[1]:
         show_chart(subject_outcomes, filtered)
-    st.markdown('<div class="section-label">Data confidence</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Score checks</div>', unsafe_allow_html=True)
     st.metric("Subject score outliers", f"{total_outliers}", "IQR method")
     st.caption("Scores at 0 and 100 remain valid marks. Outliers are statistical flags, not automatic errors.")
     st.markdown(f'<div class="data-table">{outliers.to_html(index=False, float_format=lambda value: f"{value:.1f}")}</div>', unsafe_allow_html=True)
@@ -360,7 +324,7 @@ with insights:
     st.markdown(f'<div class="data-table">{subjects.to_html(index=False, float_format=lambda value: f"{value:.1f}")}</div>', unsafe_allow_html=True)
 
 with charts:
-    st.markdown('<div class="section-label">Explore the distributions</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Charts</div>', unsafe_allow_html=True)
     first_row = st.columns(2)
     with first_row[0]:
         show_chart(score_histogram, filtered, selected_subject)
@@ -373,7 +337,7 @@ with charts:
         show_chart(correlation_heatmap, filtered)
 
 with quality:
-    st.markdown('<div class="section-label">Trust the inputs</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Cleaning summary</div>', unsafe_allow_html=True)
     st.subheader("How the upload was prepared")
     quality_metrics = st.columns(3)
     quality_metrics[0].metric("Uploaded rows", f"{cleaning['uploaded_rows']:,}")
