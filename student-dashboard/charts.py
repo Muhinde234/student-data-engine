@@ -29,7 +29,7 @@ def polish(figure: go.Figure) -> go.Figure:
 
 def score_histogram(data: pd.DataFrame, subject: str) -> go.Figure:
     """Show student counts across clearly named ten-mark ranges."""
-    bins = list(range(0, 101, 10)) + [101]
+    bins = list(range(0, 91, 10)) + [101]
     labels = [f"{start}-{start + 9}" for start in range(0, 90, 10)] + ["90-100"]
     ranges = pd.cut(data[subject], bins=bins, labels=labels, include_lowest=True, right=False)
     counts = ranges.value_counts().reindex(labels, fill_value=0).rename_axis("mark_range").reset_index(name="students")
