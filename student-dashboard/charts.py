@@ -27,6 +27,9 @@ GRID = "#E8E3DB"
 AXIS = "#D9D4CC"
 SURFACE = "#FBF8F3"
 NEUTRAL = "#EFECE6"
+# Heatmap midpoint: a neutral grey dark enough to stand apart from the chart surface.
+NEUTRAL_MID = "#DDD7CC"
+DIAGONAL = "#ECE8E1"
 
 # Colour follows the entity, so filtering never repaints the groups that remain.
 GENDER_COLORS = {"Female": CORAL, "Male": BLUE, "Unknown": GRAY}
@@ -38,45 +41,40 @@ TITLE_FONT = "Space Grotesk, sans-serif"
 SCORE_BINS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 101]
 SCORE_LABELS = ["0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-100"]
 
-TITLE_BAND = 76
-LEGEND_BAND = 34
-REFERENCE_BAND = 84
+# Height of the strip above the plot kept free for the zoom / download toolbar.
+TOOLBAR_BAND = 36
 
 
 def polish(figure: go.Figure, title: str, subtitle: str, legend: bool = False, height: int = 430) -> go.Figure:
-    """Apply shared styling and reserve fixed space for the title, subtitle, and legend."""
-    top = TITLE_BAND + (LEGEND_BAND if legend else 0) + 14
-    has_reference = any(annotation.name == "reference" for annotation in figure.layout.annotations)
+    """Apply shared styling and keep the toolbar, legend, and plot from overlapping at any width.
+
+    Plotly titles never wrap, so the title and subtitle travel in ``layout.meta`` and the
+    dashboard renders them as page text that wraps on narrow screens. The legend sits on
+    top of the plot and pushes the top margin as it wraps onto more rows; its blank title
+    row keeps the first row of entries below the toolbar.
+    """
     figure.update_layout(
         autosize=True,
         height=height,
-        margin=dict(l=12, r=REFERENCE_BAND if has_reference else 28, t=top, b=12),
-        title=dict(
-            text=f"<b>{title}</b>",
-            subtitle=dict(text=subtitle, font=dict(family=CHART_FONT, color=MUTED, size=13)),
-            font=dict(family=TITLE_FONT, color=INK, size=17),
-            x=0,
-            xref="paper",
-            xanchor="left",
-            y=1,
-            yref="container",
-            yanchor="top",
-            pad=dict(t=14),
-        ),
+        meta=dict(title=title, subtitle=subtitle),
+        margin=dict(l=8, r=12, t=TOOLBAR_BAND, b=8),
         showlegend=legend,
         legend=dict(
             orientation="h",
             x=0,
             xref="paper",
             xanchor="left",
-            y=1 - (TITLE_BAND + 2) / height,
-            yref="container",
-            yanchor="top",
-            title=None,
+            y=1.0,
+            yref="paper",
+            yanchor="bottom",
+            title=dict(text=" ", side="top", font=dict(size=TOOLBAR_BAND - 12)),
             font=dict(family=CHART_FONT, color=INK, size=12),
             bgcolor="rgba(0,0,0,0)",
             traceorder="normal",
         ),
+        modebar=dict(bgcolor="rgba(251, 248, 243, 0.95)", color=INK, activecolor=CORAL, orientation="h"),
+        # Dragging on a phone should scroll the page; zoom comes from the toolbar buttons.
+        dragmode=False,
         font=dict(family=CHART_FONT, color=INK, size=12),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor=SURFACE,
@@ -89,20 +87,10 @@ def polish(figure: go.Figure, title: str, subtitle: str, legend: bool = False, h
 
 
 def _reference_line(figure: go.Figure, y: float, label: str, value: str) -> None:
-    """Draw a horizontal reference line labelled in the right margin, clear of the data."""
-    figure.add_hline(y=y, line=dict(color=MUTED, width=1))
-    figure.add_annotation(
-        name="reference",
-        x=1,
-        xref="paper",
-        y=y,
-        text=f"{label}<br><b>{value}</b>",
-        showarrow=False,
-        xanchor="left",
-        yanchor="middle",
-        xshift=6,
-        align="left",
-        font=dict(color=MUTED, size=11),
+    """Draw a full-width reference line and name it in the legend, which wraps on small screens."""
+    figure.add_hline(y=y, line=dict(color=MUTED, width=1.5))
+    figure.add_trace(
+        go.Scatter(x=[None], y=[None], mode="lines", name=f"{label} ({value})", line=dict(color=MUTED, width=1.5), hoverinfo="skip")
     )
 
 
@@ -136,8 +124,9 @@ def score_histogram(data: pd.DataFrame, subject: str) -> go.Figure:
     # Legend-only entries explain the two bar colours without splitting the data trace.
     for name, color in [(f"Below pass mark (0-{PASS_MARK - 1})", RED), (f"Pass mark or above ({PASS_MARK}-100)", BLUE)]:
         figure.add_trace(go.Bar(x=[None], y=[None], name=name, marker=dict(color=color), hoverinfo="skip"))
-    # The legend names the split, so the divider needs no label of its own to collide with bar counts.
+    # The legend names the divider, so it needs no in-plot label to collide with bar counts.
     figure.add_vline(x=3.5, line=dict(color=INK, width=1.5))
+    figure.add_trace(go.Scatter(x=[None], y=[None], mode="lines", name=f"Pass mark ({PASS_MARK})", line=dict(color=INK, width=1.5), hoverinfo="skip"))
     figure.update_layout(
         barmode="overlay",
         xaxis_title=f"{_label(subject)} mark range",
@@ -161,19 +150,20 @@ def average_total_by_grade(data: pd.DataFrame) -> go.Figure:
             x=averages["grade"],
             y=averages["total"],
             mode="lines+markers",
+            name="Average total",
             line=dict(color=BLUE, width=2.5),
             marker=dict(size=9, color=BLUE, line=dict(color=SURFACE, width=2)),
             hovertemplate="Grade %{x}<br>Average total: %{y:.1f} / 300<extra></extra>",
         )
     )
-    _reference_line(figure, cohort_average, "Cohort avg", f"{cohort_average:.1f}")
+    _reference_line(figure, cohort_average, "Cohort average", f"{cohort_average:.1f}")
     figure.add_annotation(x=best["grade"], y=best["total"], text=f"<b>{best['total']:.1f}</b>", showarrow=False, yanchor="bottom", yshift=10, font=dict(color=INK, size=12))
     figure.update_layout(xaxis=dict(title="Grade", dtick=1), yaxis_title="Average total (out of 300)")
     if len(averages) > 1:
         title = f"Grade {int(best['grade'])} has the highest average total ({best['total']:.1f} / 300)"
     else:
         title = f"Grade {int(best['grade'])} averages {best['total']:.1f} out of 300"
-    return polish(figure, title, "Mean Math + Science + English score per grade, compared with the cohort average")
+    return polish(figure, title, "Mean Math + Science + English score per grade, compared with the cohort average", legend=True)
 
 
 def pass_rate_by_grade(data: pd.DataFrame) -> go.Figure:
@@ -185,7 +175,9 @@ def pass_rate_by_grade(data: pd.DataFrame) -> go.Figure:
         go.Bar(
             x=rates["grade"],
             y=rates["rate"],
-            text=[f"{value:.0f}%" for value in rates["rate"]],
+            # Twelve labels crowd a phone-width chart, so only the extremes are labelled.
+            text=[f"{value:.0f}%" if value in (rates["rate"].max(), rates["rate"].min()) else "" for value in rates["rate"]],
+            name="Passing all 3 subjects",
             textposition="outside",
             textfont=dict(color=INK, size=11),
             cliponaxis=False,
@@ -193,14 +185,14 @@ def pass_rate_by_grade(data: pd.DataFrame) -> go.Figure:
             hovertemplate="Grade %{x}<br>%{y:.1f}% pass all three subjects<extra></extra>",
         )
     )
-    _reference_line(figure, cohort_rate, "Cohort", f"{cohort_rate:.0f}%")
+    _reference_line(figure, cohort_rate, "Cohort average", f"{cohort_rate:.0f}%")
     upper = min(100, max(rates["rate"].max(), cohort_rate) * 1.25 + 5)
     figure.update_layout(xaxis=dict(title="Grade", dtick=1), yaxis=dict(title="Students passing all 3 subjects", ticksuffix="%", range=[0, upper]))
     if len(rates) > 1:
         title = f"Grade {int(best['grade'])} has the most students passing all three subjects ({best['rate']:.0f}%)"
     else:
         title = f"{best['rate']:.0f}% of Grade {int(best['grade'])} pass all three subjects"
-    return polish(figure, title, f"Share of students scoring at least {PASS_MARK} in Math, Science, and English")
+    return polish(figure, title, f"Share of students scoring at least {PASS_MARK} in Math, Science, and English", legend=True)
 
 
 def total_by_gender(data: pd.DataFrame) -> go.Figure:
@@ -276,34 +268,54 @@ def correlation_heatmap(data: pd.DataFrame) -> go.Figure:
     """Show how strongly subject scores move together."""
     correlation = data[SUBJECTS].corr().fillna(0)
     labels = [_label(subject) for subject in SUBJECTS]
-    # A subject always correlates 1.00 with itself; blanking the diagonal keeps focus on the pairs.
+    pairs = [(SUBJECTS[i], SUBJECTS[j], correlation.iloc[i, j]) for i in range(3) for j in range(i + 1, 3)]
+    first, second, strongest = max(pairs, key=lambda pair: abs(pair[2]))
+    # Near-zero correlations vanish on a fixed -1..+1 scale, so the scale is fitted to the
+    # data (never narrower than ±0.1, so noise cannot look like a strong link) and the
+    # subtitle states the range being shown.
+    limit = float(min(1.0, max(0.1, np.ceil(abs(strongest) * 10) / 10)))
+    # A subject always correlates 1.00 with itself; the diagonal is greyed out and labelled.
     cells = correlation.to_numpy(copy=True)
     np.fill_diagonal(cells, np.nan)
+    # Adding 0.0 turns a rounded -0.00 into 0.00.
+    text = [["same subject" if i == j else f"{round(correlation.iloc[i, j], 2) + 0.0:.2f}" for j in range(3)] for i in range(3)]
     figure = go.Figure(
         go.Heatmap(
             z=cells,
             x=labels,
             y=labels,
-            zmin=-1,
-            zmax=1,
-            colorscale=[[0, CORAL], [0.5, NEUTRAL], [1, BLUE]],
-            texttemplate="%{z:.2f}",
-            textfont=dict(color=INK, size=14),
-            xgap=2,
-            ygap=2,
-            colorbar=dict(title=dict(text="r", font=dict(color=INK)), tickvals=[-1, -0.5, 0, 0.5, 1], tickfont=dict(color=MUTED), thickness=12),
+            zmin=-limit,
+            zmax=limit,
+            zmid=0,
+            colorscale=[[0, CORAL], [0.5, NEUTRAL_MID], [1, BLUE]],
+            text=text,
+            texttemplate="%{text}",
+            # No fixed colour: plotly picks dark or white text per cell for contrast.
+            textfont=dict(size=14),
+            xgap=3,
+            ygap=3,
+            colorbar=dict(
+                title=dict(text="r", font=dict(color=INK)),
+                tickvals=[-limit, -limit / 2, 0, limit / 2, limit],
+                tickformat=".2f",
+                tickfont=dict(color=MUTED),
+                thickness=12,
+            ),
             hovertemplate="%{y} vs %{x}<br>Correlation r = %{z:.2f}<extra></extra>",
         )
     )
+    # Grey diagonal cells, drawn underneath so their "same subject" text stays readable.
+    for index in range(3):
+        figure.add_shape(type="rect", x0=index - 0.5, x1=index + 0.5, y0=index - 0.5, y1=index + 0.5, fillcolor=DIAGONAL, line=dict(width=0), layer="below")
+    figure.update_xaxes(showgrid=False)
     figure.update_yaxes(autorange="reversed", showgrid=False)
-    pairs = [(SUBJECTS[i], SUBJECTS[j], correlation.iloc[i, j]) for i in range(3) for j in range(i + 1, 3)]
-    first, second, strongest = max(pairs, key=lambda pair: abs(pair[2]))
     if abs(strongest) < 0.2:
         title = "Subject scores are largely independent of each other"
     else:
         direction = "rise together" if strongest > 0 else "move in opposite directions"
         title = f"{_label(first)} and {_label(second)} scores {direction} (r = {strongest:.2f})"
-    return polish(figure, title, "Correlation from -1 (opposite) through 0 (no link) to +1 (move together)", height=420)
+    subtitle = f"Correlation r: 0 means no link · coral = opposite directions, blue = move together · colour scale ±{limit:.1f}"
+    return polish(figure, title, subtitle, height=420)
 
 
 def gender_subject_comparison(data: pd.DataFrame) -> go.Figure:

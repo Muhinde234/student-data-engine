@@ -27,8 +27,8 @@ def test_subject_health_chart_keeps_legend_visible():
 
     assert figure.layout.showlegend is True
 
-def test_multi_series_charts_reserve_space_between_title_and_plot_for_legend():
-    from charts import TITLE_BAND, band_chart, total_by_gender
+def test_charts_keep_legend_above_plot_and_below_toolbar_with_wrapping_titles():
+    from charts import TOOLBAR_BAND, average_total_by_grade, band_chart, correlation_heatmap, pass_rate_by_grade, total_by_gender
     from metrics import performance_bands
 
     data = pd.DataFrame(
@@ -36,9 +36,24 @@ def test_multi_series_charts_reserve_space_between_title_and_plot_for_legend():
     )
     data["total"] = data[["math", "science", "english"]].sum(axis=1)
 
-    for figure in [score_histogram(data, "math"), gender_subject_comparison(data), subject_outcomes(data), total_by_gender(data), band_chart(performance_bands(data))]:
-        legend_top_px = (1 - figure.layout.legend.y) * figure.layout.height
+    legend_charts = [
+        score_histogram(data, "math"),
+        gender_subject_comparison(data),
+        subject_outcomes(data),
+        total_by_gender(data),
+        band_chart(performance_bands(data)),
+        average_total_by_grade(data),
+        pass_rate_by_grade(data),
+    ]
+    for figure in legend_charts:
+        legend = figure.layout.legend
         assert figure.layout.showlegend is True
-        assert figure.layout.legend.yref == "container"
-        assert legend_top_px >= TITLE_BAND
-        assert figure.layout.margin.t >= legend_top_px + 30
+        # Anchored on top of the plot, so plotly pushes the margin as the legend wraps.
+        assert (legend.yref, legend.y, legend.yanchor) == ("paper", 1.0, "bottom")
+        # The blank legend title row keeps entries clear of the toolbar.
+        assert legend.title.side == "top" and legend.title.font.size >= TOOLBAR_BAND - 12
+
+    for figure in [*legend_charts, correlation_heatmap(data)]:
+        assert figure.layout.margin.t >= TOOLBAR_BAND
+        assert figure.layout.meta["title"] and figure.layout.meta["subtitle"]
+        assert not figure.layout.title.text

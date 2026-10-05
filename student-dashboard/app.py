@@ -1,4 +1,6 @@
 import csv
+import html
+import re
 
 import streamlit as st
 
@@ -7,21 +9,40 @@ from data import SUBJECTS, load_uploaded_data, validate_data
 from metrics import failing_any_rate, gender_summary, passing_all_rate, performance_bands, ranked_students, subject_outlier_summary, subject_summary, top_student_per_grade
 
 
+CHART_TOOLS = [["zoomIn2d", "zoomOut2d", "pan2d", "resetScale2d", "toImage"]]
+
+
 def show_chart(chart_function, data, *arguments):
-    """Keep one unusual filtered subset from blanking the whole dashboard."""
+    """Render a chart with a wrapping heading and an always-visible zoom / download toolbar.
+
+    Errors are caught so one unusual filtered subset cannot blank the whole dashboard.
+    """
     try:
-        st.plotly_chart(
-            chart_function(data, *arguments),
-            width="stretch",
-            config={
-                "displayModeBar": True,
-                "displaylogo": False,
-                "scrollZoom": True,
-                "responsive": True,
-            },
-        )
+        figure = chart_function(data, *arguments)
     except (KeyError, TypeError, ValueError) as error:
         st.warning(f"This chart needs more data for the current filters: {error}")
+        return
+    meta = figure.layout.meta or {}
+    title = meta.get("title", "")
+    st.markdown(
+        f'<div class="chart-heading"><div class="chart-title">{html.escape(title)}</div>'
+        f'<div class="chart-subtitle">{html.escape(meta.get("subtitle", ""))}</div></div>',
+        unsafe_allow_html=True,
+    )
+    file_name = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")[:60] or "student-chart"
+    st.plotly_chart(
+        figure,
+        width="stretch",
+        config={
+            "displayModeBar": True,
+            "displaylogo": False,
+            "modeBarButtons": CHART_TOOLS,
+            # Wheel zoom would hijack page scrolling, so zooming goes through the toolbar.
+            "scrollZoom": False,
+            "responsive": True,
+            "toImageButtonOptions": {"format": "png", "filename": file_name, "scale": 2},
+        },
+    )
 
 
 def reset_filter_state():
@@ -98,6 +119,34 @@ st.markdown(
     .js-plotly-plot .plotly .modebar { opacity: 1 !important; visibility: visible !important; }
     .js-plotly-plot .plotly .modebar-group { background: rgba(251, 248, 243, 0.92); border-radius: 4px; }
     .js-plotly-plot .plotly .modebar-btn path { fill: #172a3a !important; }
+    .js-plotly-plot .plotly .modebar { top: 2px !important; right: 2px !important; }
+    .js-plotly-plot .plotly .modebar-group { padding: 2px !important; border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(23, 42, 58, 0.06); }
+    .js-plotly-plot .plotly .modebar-btn { padding: 4px 5px !important; }
+    .js-plotly-plot .plotly .modebar-btn:hover path, .js-plotly-plot .plotly .modebar-btn.active path { fill: var(--coral) !important; }
+    .chart-heading { margin: 1.2rem 0 0.15rem; }
+    .chart-title { font: 700 1.05rem/1.3 'Space Grotesk', sans-serif; letter-spacing: -0.01em; }
+    .chart-subtitle { font: 400 0.82rem/1.45 'DM Sans', sans-serif; margin-top: 0.2rem; }
+    [data-testid="stAppViewContainer"] .chart-title { color: var(--ink) !important; }
+    [data-testid="stAppViewContainer"] .chart-subtitle { color: var(--muted) !important; }
+    [data-testid="stPlotlyChart"] { min-width: 0; }
+    @media (max-width: 1024px) {
+        .block-container { padding: 2.5rem 2rem 3rem; }
+    }
+    @media (max-width: 640px) {
+        .block-container { padding: 1.75rem 1rem 2.5rem; }
+        .hero-copy { font-size: 0.95rem; margin-bottom: 1.4rem; }
+        .control-state { text-align: left; }
+        [data-testid="stMetric"] { padding: 0.9rem 1rem; }
+        [data-testid="stMetricValue"] { font-size: 1.55rem; }
+        [data-testid="stTabs"] [role="tablist"] { gap: 0.9rem; overflow-x: auto; scrollbar-width: none; }
+        [data-testid="stTabs"] button { white-space: nowrap; }
+        .chart-title { font-size: 0.98rem; }
+        .chart-subtitle { font-size: 0.78rem; }
+        .data-table table { font-size: 0.76rem; }
+        .data-table th, .data-table td { padding: 0.5rem 0.55rem; }
+        /* Larger touch targets for the chart toolbar on phones. */
+        .js-plotly-plot .plotly .modebar-btn { padding: 6px 7px !important; }
+    }
     [data-testid="stForm"] { background: var(--surface); border: 0; padding: 0.15rem 0 0; }
     [data-testid="stForm"] label { color: var(--ink); font: 600 0.75rem 'DM Sans', sans-serif; letter-spacing: 0.03em; }
     [data-testid="stFormSubmitButton"] button { min-height: 2.7rem; border-radius: 4px; font: 700 0.78rem 'DM Sans', sans-serif; letter-spacing: 0.01em; transition: all 150ms ease; }
