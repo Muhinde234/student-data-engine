@@ -18,7 +18,8 @@ def _column_key(value: Any) -> str:
 def _clean_text(series: pd.Series, fallback: str) -> pd.Series:
     """Remove wrapping quotes and normalize whitespace in text fields."""
     cleaned = series.fillna(fallback).astype(str).str.strip()
-    return cleaned.str.replace(r"^[\"']+|[\"']+$", "", regex=True).str.replace(r"\s+", " ", regex=True).str.strip()
+    cleaned = cleaned.str.replace(r"[\"'`“”‘’]", "", regex=True)
+    return cleaned.str.replace(r"\s+", " ", regex=True).str.strip()
 
 
 def _read_upload(uploaded_file: Any) -> pd.DataFrame:
@@ -41,6 +42,8 @@ def clean_data(frames: list[pd.DataFrame]) -> tuple[pd.DataFrame, dict[str, int]
     original_rows = len(combined)
     combined = combined[SOURCE_COLUMNS].copy()
     combined["name"] = _clean_text(combined["name"], "Unknown").str.title()
+    combined["name"] = combined["name"].str.replace(r"[^A-Za-z0-9 .-]", "", regex=True).str.replace(r"\s+", " ", regex=True).str.strip()
+    combined["name"] = combined["name"].replace("", "Unknown")
     combined["gender"] = _clean_text(combined["gender"], "Unknown").str.lower().replace(
         {"f": "Female", "female": "Female", "woman": "Female", "girl": "Female", "m": "Male", "male": "Male", "man": "Male", "boy": "Male"}
     )
@@ -56,6 +59,7 @@ def clean_data(frames: list[pd.DataFrame]) -> tuple[pd.DataFrame, dict[str, int]
     combined["grade"] = combined["grade"].astype(int)
     combined["student_id"] = range(1, len(combined) + 1)
     combined["unique_name"] = combined["name"] + "_" + combined.groupby("name").cumcount().add(1).astype(str)
+    combined["unique_name"] = _clean_text(combined["unique_name"], "Unknown")
     combined["total"] = combined[SUBJECTS].sum(axis=1)
     cleaned = combined[EXPECTED_COLUMNS]
     return cleaned, {"uploaded_rows": original_rows, "cleaned_rows": len(cleaned), "removed_rows": original_rows - len(cleaned)}

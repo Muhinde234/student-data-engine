@@ -51,3 +51,41 @@ def test_clean_data_normalizes_quoted_names_and_gender():
 
     assert cleaned["name"].tolist() == ["Navya", "Rohan"]
     assert cleaned["gender"].tolist() == ["Female", "Male"]
+
+
+def test_clean_data_removes_quotes_inside_text_values():
+    raw = pd.DataFrame(
+        {
+            "name": ["N'a'vya"],
+            "gender": ["‘female’"],
+            "grade": [1],
+            "math": [80],
+            "science": [70],
+            "english": [90],
+            "total": [0],
+        }
+    )
+
+    cleaned, _ = clean_data([raw])
+
+    assert cleaned.loc[0, "name"] == "Navya"
+    assert cleaned.loc[0, "gender"] == "Female"
+
+
+def test_clean_data_removes_quotes_from_display_names():
+    raw = pd.DataFrame(
+        {
+            "name": ['"Aryan"', "'Diya'", "‘Ananya’"],
+            "gender": ["Male", "Female", "Female"],
+            "grade": [1, 2, 3],
+            "math": [80, 70, 60],
+            "science": [70, 60, 50],
+            "english": [90, 80, 70],
+            "total": [0, 0, 0],
+        }
+    )
+
+    cleaned, _ = clean_data([raw])
+
+    assert cleaned["name"].tolist() == ["Aryan", "Diya", "Ananya"]
+    assert cleaned["unique_name"].tolist() == ["Aryan_1", "Diya_1", "Ananya_1"]

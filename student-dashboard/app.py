@@ -28,10 +28,10 @@ def reset_filter_state():
     """Reset both visible filter controls and the applied analysis state."""
     st.session_state.grades_filter = []
     st.session_state.gender_filter = []
-    st.session_state.subject_filter = SUBJECTS[0]
+    st.session_state.subject_filter = "All subjects"
     st.session_state.applied_grades = []
     st.session_state.applied_genders = []
-    st.session_state.applied_subject = SUBJECTS[0]
+    st.session_state.applied_subject = "All subjects"
 
 
 st.set_page_config(page_title="Student Performance Dashboard", layout="wide")
@@ -136,7 +136,7 @@ st.markdown(
 )
 
 with st.sidebar:
-    st.markdown('<div class="sidebar-brand">STUDENT<br><span>SIGNAL</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="sidebar-brand">STUDENT PERFORMANCE <br><span>PLATFORM</span></div>', unsafe_allow_html=True)
     st.caption("School performance dashboard")
     st.markdown("---")
     st.markdown('<div class="sidebar-step">01 / Upload data</div>', unsafe_allow_html=True)
@@ -220,7 +220,7 @@ with st.container(border=True):
         with filter_columns[1]:
             st.multiselect("Gender", sorted(data["gender"].unique()), key="gender_filter", placeholder="All genders")
         with filter_columns[2]:
-            st.selectbox("Subject", SUBJECTS, key="subject_filter", format_func=str.title)
+            st.selectbox("Subject", ["All subjects", *SUBJECTS], key="subject_filter", format_func=str.title)
         st.markdown('<div class="control-actions"></div>', unsafe_allow_html=True)
         action_columns = st.columns([2.4, 1, 1], gap="small", vertical_alignment="center")
         with action_columns[0]:
@@ -264,7 +264,7 @@ if filtered.empty:
     if st.button("Return to full cohort", key="empty_reset_filters"):
         st.session_state.grades_filter = []
         st.session_state.gender_filter = []
-        st.session_state.subject_filter = SUBJECTS[0]
+        st.session_state.subject_filter = "All subjects"
         st.rerun()
     st.stop()
 
@@ -333,16 +333,22 @@ with insights:
 
 with charts:
     st.markdown('<div class="section-label">Charts</div>', unsafe_allow_html=True)
-    first_row = st.columns(2)
-    with first_row[0]:
+    if selected_subject == "All subjects":
+        st.caption("Each chart shows how many students scored within each ten-mark range.")
+        for subject in SUBJECTS:
+            st.subheader(f"{subject.title()} score distribution")
+            show_chart(score_histogram, filtered, subject)
+    else:
         st.caption(f"Each bar shows how many students scored within a ten-mark range in {selected_subject.title()}.")
         show_chart(score_histogram, filtered, selected_subject)
-    with first_row[1]:
+
+    first_row = st.columns(2)
+    with first_row[0]:
         show_chart(total_by_gender, filtered)
-    second_row = st.columns(2)
-    with second_row[0]:
+    with first_row[1]:
         show_chart(band_chart, performance_bands(filtered))
-    with second_row[1]:
+    second_row = st.columns(1)
+    with second_row[0]:
         show_chart(correlation_heatmap, filtered)
 
 with quality:

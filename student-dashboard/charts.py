@@ -13,6 +13,7 @@ SCORE_LABELS = ["0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70
 
 def polish(figure: go.Figure) -> go.Figure:
     """Apply the dashboard's shared chart styling."""
+    show_legend = figure.layout.showlegend if figure.layout.showlegend is not None else False
     figure.update_layout(
         autosize=True,
         height=390,
@@ -21,7 +22,7 @@ def polish(figure: go.Figure) -> go.Figure:
         title_font=dict(family="Space Grotesk, sans-serif", color="#172A3A", size=16),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#FBF8F3",
-        showlegend=False,
+        showlegend=show_legend,
         hoverlabel=dict(bgcolor="#172A3A", font=dict(color="#FFFFFF", family=CHART_FONT)),
     )
     figure.update_xaxes(showgrid=False, linecolor="#D9D4CC", tickfont=dict(color="#263238"), title_font=dict(color="#172A3A"))
@@ -106,5 +107,10 @@ def subject_outcomes(data: pd.DataFrame) -> go.Figure:
     long = outcomes.melt(id_vars="subject", var_name="measure", value_name="value")
     long["measure"] = long["measure"].replace({"average_score": "Average score", "pass_rate": "Pass rate"})
     figure = px.bar(long, x="subject", y="value", color="measure", barmode="group", color_discrete_sequence=["#2F6690", "#E56B56"])
-    figure.update_layout(title=dict(text="Subject health: score and pass rate", subtitle=dict(text="Average mark compared with the 40-point pass threshold")), yaxis_title="Percent / score")
+    figure.update_layout(
+        title=dict(text="Subject health: score and pass rate", subtitle=dict(text="Average mark compared with the 40-point pass threshold")),
+        yaxis_title="Percent / score",
+        showlegend=True,
+        legend=dict(orientation="h", y=1.08, x=0, title=None),
+    )
     return polish(figure)
