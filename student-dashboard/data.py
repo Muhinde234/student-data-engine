@@ -15,6 +15,12 @@ def _column_key(value: Any) -> str:
     return "".join(character for character in str(value).lower() if character.isalnum())
 
 
+def _clean_text(series: pd.Series, fallback: str) -> pd.Series:
+    """Remove wrapping quotes and normalize whitespace in text fields."""
+    cleaned = series.fillna(fallback).astype(str).str.strip()
+    return cleaned.str.replace(r"^[\"']+|[\"']+$", "", regex=True).str.replace(r"\s+", " ", regex=True).str.strip()
+
+
 def _read_upload(uploaded_file: Any) -> pd.DataFrame:
     """Read a CSV whether it has a standard header or not."""
     uploaded_file.seek(0)
@@ -34,8 +40,8 @@ def clean_data(frames: list[pd.DataFrame]) -> tuple[pd.DataFrame, dict[str, int]
     combined = pd.concat(frames, ignore_index=True)
     original_rows = len(combined)
     combined = combined[SOURCE_COLUMNS].copy()
-    combined["name"] = combined["name"].fillna("Unknown").astype(str).str.strip()
-    combined["gender"] = combined["gender"].fillna("Unknown").astype(str).str.strip().str.lower().replace(
+    combined["name"] = _clean_text(combined["name"], "Unknown").str.title()
+    combined["gender"] = _clean_text(combined["gender"], "Unknown").str.lower().replace(
         {"f": "Female", "female": "Female", "woman": "Female", "girl": "Female", "m": "Male", "male": "Male", "man": "Male", "boy": "Male"}
     )
     combined["gender"] = combined["gender"].where(combined["gender"].isin(["Female", "Male"]), "Unknown")

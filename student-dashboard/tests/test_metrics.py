@@ -1,5 +1,6 @@
 import pandas as pd
 
+from data import clean_data
 from metrics import failing_any_rate, passing_all_rate, performance_bands, ranked_students, subject_outlier_summary, subject_summary
 
 
@@ -31,3 +32,22 @@ def test_subject_summary_and_outlier_summary():
     outliers = subject_outlier_summary(data)
     assert summary.iloc[0]["subject"] == "Science"
     assert outliers["outliers"].sum() == 0
+
+
+def test_clean_data_normalizes_quoted_names_and_gender():
+    raw = pd.DataFrame(
+        {
+            "name": [' "navya" ', "'ROHAN'"],
+            "gender": [' "female" ', "'M'"],
+            "grade": [1, 2],
+            "math": [80, 70],
+            "science": [75, 65],
+            "english": [90, 60],
+            "total": [0, 0],
+        }
+    )
+
+    cleaned, _ = clean_data([raw])
+
+    assert cleaned["name"].tolist() == ["Navya", "Rohan"]
+    assert cleaned["gender"].tolist() == ["Female", "Male"]

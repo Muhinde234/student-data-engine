@@ -1,3 +1,5 @@
+import csv
+
 import streamlit as st
 
 from charts import average_total_by_grade, band_chart, correlation_heatmap, gender_subject_comparison, score_histogram, subject_outcomes, total_by_gender
@@ -244,7 +246,7 @@ with st.sidebar:
     st.markdown('<div class="sidebar-step">03 / Take the cleaned file</div>', unsafe_allow_html=True)
     st.download_button(
         "Download cleaned CSV",
-        data=data.to_csv(index=False).encode("utf-8"),
+        data=data.to_csv(index=False, quoting=csv.QUOTE_MINIMAL).encode("utf-8"),
         file_name="cleaned_student_data.csv",
         mime="text/csv",
         help="Save the validated, cleaned dataset for the school.",
