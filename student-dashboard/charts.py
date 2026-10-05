@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 
 PALETTE = {"Fail": "#C94C4C", "Pass": "#E0A458", "Good": "#4C956C", "Excellent": "#2F6690"}
 CHART_FONT = "DM Sans, sans-serif"
+SCORE_BINS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 101]
+SCORE_LABELS = ["0-9", "10-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80-89", "90-100"]
 
 
 def polish(figure: go.Figure) -> go.Figure:
@@ -29,10 +31,8 @@ def polish(figure: go.Figure) -> go.Figure:
 
 def score_histogram(data: pd.DataFrame, subject: str) -> go.Figure:
     """Show student counts across clearly named ten-mark ranges."""
-    bins = list(range(0, 91, 10)) + [101]
-    labels = [f"{start}-{start + 9}" for start in range(0, 90, 10)] + ["90-100"]
-    ranges = pd.cut(data[subject], bins=bins, labels=labels, include_lowest=True, right=False)
-    counts = ranges.value_counts().reindex(labels, fill_value=0).rename_axis("mark_range").reset_index(name="students")
+    ranges = pd.cut(data[subject], bins=SCORE_BINS, labels=SCORE_LABELS, include_lowest=True, right=False)
+    counts = ranges.value_counts().reindex(SCORE_LABELS, fill_value=0).rename_axis("mark_range").reset_index(name="students")
     figure = px.bar(counts, x="mark_range", y="students", text="students", color_discrete_sequence=["#2F6690"])
     average = data[subject].mean()
     figure.update_layout(
