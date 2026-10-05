@@ -183,8 +183,14 @@ if not uploaded_files:
     st.stop()
 
 try:
-    data, cleaning = load_uploaded_data(uploaded_files)
-    data = validate_data(data)
+    with st.status("Cleaning uploaded files...", expanded=False) as cleaning_status:
+        data, cleaning = load_uploaded_data(uploaded_files)
+        data = validate_data(data)
+        cleaning_status.update(
+            label=f"Cleaning complete: {cleaning['cleaned_rows']:,} valid rows ready",
+            state="complete",
+            expanded=False,
+        )
 except (FileNotFoundError, ValueError) as error:
     st.error(f"The uploaded dataset needs attention: {error}")
     st.stop()
