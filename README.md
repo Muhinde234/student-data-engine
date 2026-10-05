@@ -7,7 +7,7 @@ Student Signal is a Streamlit dashboard for cleaning and analyzing school perfor
 1. Uploads one or more student CSV files.
 2. Detects files with standard headers or no headers.
 3. Normalizes names, gender labels, grades, and score values.
-4. Removes invalid rows and recalculates totals.
+4. Removes invalid rows and IQR outliers, and recalculates totals.
 5. Validates the cleaned dataset before analysis.
 6. Shows school-level metrics, grade trends, subject distributions, gender comparisons, and top students.
 7. Exports the cleaned dataset as `cleaned_student_data.csv`.

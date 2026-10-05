@@ -2,7 +2,7 @@ import csv
 
 import streamlit as st
 
-from charts import average_total_by_grade, band_chart, correlation_heatmap, gender_subject_comparison, score_histogram, subject_outcomes, total_by_gender
+from charts import average_total_by_grade, band_chart, correlation_heatmap, gender_subject_comparison, pass_rate_by_grade, score_histogram, subject_outcomes, total_by_gender
 from data import SUBJECTS, load_uploaded_data, validate_data
 from metrics import failing_any_rate, gender_summary, passing_all_rate, performance_bands, ranked_students, subject_outlier_summary, subject_summary, top_student_per_grade
 
@@ -202,7 +202,7 @@ if "applied_grades" not in st.session_state:
 if "applied_genders" not in st.session_state:
     st.session_state.applied_genders = []
 if "applied_subject" not in st.session_state:
-    st.session_state.applied_subject = SUBJECTS[0]
+    st.session_state.applied_subject = "All subjects"
 
 with st.container(border=True):
     heading_columns = st.columns([1.6, 1])
@@ -242,7 +242,9 @@ selected_subject = st.session_state.applied_subject
 with st.sidebar:
     st.markdown("---")
     st.markdown('<div class="sidebar-step">02 / Dataset health</div>', unsafe_allow_html=True)
-    st.caption(f"{cleaning['cleaned_rows']:,} clean records · {cleaning['removed_rows']:,} removed")
+    st.caption(
+        f"{cleaning['cleaned_rows']:,} clean records · {cleaning['invalid_rows']:,} invalid · {cleaning['outlier_rows']:,} outliers removed"
+    )
     st.markdown('<div class="sidebar-step">03 / Take the cleaned file</div>', unsafe_allow_html=True)
     st.download_button(
         "Download cleaned CSV",
@@ -280,8 +282,11 @@ with overview:
     kpis[2].metric("Passing all 3", f"{passing_all_rate(filtered):.1f}%")
     kpis[3].metric("Failing at least one", f"{failing_any_rate(filtered):.1f}%")
     st.markdown('<div class="section-label">Results by grade</div>', unsafe_allow_html=True)
-    st.subheader("Average total by grade")
-    show_chart(average_total_by_grade, filtered)
+    grade_row = st.columns(2)
+    with grade_row[0]:
+        show_chart(average_total_by_grade, filtered)
+    with grade_row[1]:
+        show_chart(pass_rate_by_grade, filtered)
     st.markdown('<div class="insight">Use the controls above to view results for selected grades or genders.</div>', unsafe_allow_html=True)
 
 with top_students:
@@ -302,7 +307,9 @@ with insights:
     subjects = subject_summary(filtered)
     strongest_subject = subjects.iloc[0]
     weakest_subject = subjects.iloc[-1]
-    outliers = subject_outlier_summary(filtered)
+    # Checked on the whole cleaned cohort: that is where the IQR fences were applied.
+    # A small filtered subset has its own fences and would re-flag ordinary marks.
+    outliers = subject_outlier_summary(data)
     total_outliers = int(outliers["outliers"].sum())
     leading_student = top_record["unique_name"].rsplit("_", 1)[0].title()
     insight_columns = st.columns(3)
@@ -325,8 +332,10 @@ with insights:
     with first_row[1]:
         show_chart(subject_outcomes, filtered)
     st.markdown('<div class="section-label">Score checks</div>', unsafe_allow_html=True)
-    st.metric("Subject score outliers", f"{total_outliers}", "IQR method")
-    st.caption("Scores at 0 and 100 remain valid marks. Outliers are statistical flags, not automatic errors.")
+    outlier_columns = st.columns(2)
+    outlier_columns[0].metric("Outliers removed during cleaning", f"{cleaning['outlier_rows']:,}", "IQR method", delta_color="off")
+    outlier_columns[1].metric("Outliers remaining", f"{total_outliers}", "full cleaned cohort", delta_color="off")
+    st.caption("Rows with any subject score or total outside the 1.5 × IQR fences are removed before analysis.")
     st.markdown(f'<div class="data-table">{outliers.to_html(index=False, float_format=lambda value: f"{value:.1f}")}</div>', unsafe_allow_html=True)
     st.subheader("Subject health")
     st.markdown(f'<div class="data-table">{subjects.to_html(index=False, float_format=lambda value: f"{value:.1f}")}</div>', unsafe_allow_html=True)
@@ -336,7 +345,6 @@ with charts:
     if selected_subject == "All subjects":
         st.caption("Each chart shows how many students scored within each ten-mark range.")
         for subject in SUBJECTS:
-            st.subheader(f"{subject.title()} score distribution")
             show_chart(score_histogram, filtered, subject)
     else:
         st.caption(f"Each bar shows how many students scored within a ten-mark range in {selected_subject.title()}.")
@@ -354,19 +362,22 @@ with charts:
 with quality:
     st.markdown('<div class="section-label">Cleaning summary</div>', unsafe_allow_html=True)
     st.subheader("How the upload was prepared")
-    quality_metrics = st.columns(3)
+    quality_metrics = st.columns(4)
     quality_metrics[0].metric("Uploaded rows", f"{cleaning['uploaded_rows']:,}")
-    quality_metrics[1].metric("Clean rows", f"{cleaning['cleaned_rows']:,}")
-    quality_metrics[2].metric("Rows removed", f"{cleaning['removed_rows']:,}")
+    quality_metrics[1].metric("Invalid rows removed", f"{cleaning['invalid_rows']:,}")
+    quality_metrics[2].metric("Outlier rows removed", f"{cleaning['outlier_rows']:,}")
+    quality_metrics[3].metric("Clean rows", f"{cleaning['cleaned_rows']:,}")
     st.markdown(
         """
-        - Header names are detected and standardized automatically.
-        - Gender spellings are normalized to Female, Male, or Unknown.
-        - Grade values are extracted and normalized to integers 1 through 12.
+        - Header names are detected and standardized automatically, and all files are combined into one cohort.
+        - Names lose stray quotes and symbols and are written in Title Case, so `'navya'`, `"Navya"`, and `NAVYA` become `Navya`.
+        - Gender spellings are normalized to Female or Male (`F`, `girl`, `0` → Female; `M`, `boy`, `1` → Male); anything else is Unknown.
+        - Grade values such as `Grade 7` or `07` are normalized to integers 1 through 12.
         - Score cells containing text such as `marks` are converted to numbers.
         - Totals are recalculated from the three subject scores.
+        - Rows with a subject score or total outside the 1.5 × IQR fences are removed as outliers.
         - Names receive a unique row identifier for reliable ranking.
 
-        Invalid rows are removed before analysis so every chart uses validated values.
+        Invalid and outlier rows are removed before analysis so every chart uses validated values.
         """
     )

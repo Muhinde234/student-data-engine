@@ -89,3 +89,51 @@ def test_clean_data_removes_quotes_from_display_names():
 
     assert cleaned["name"].tolist() == ["Aryan", "Diya", "Ananya"]
     assert cleaned["unique_name"].tolist() == ["Aryan_1", "Diya_1", "Ananya_1"]
+
+def test_clean_data_maps_numeric_gender_codes():
+    raw = pd.DataFrame(
+        {
+            "name": ["Navya", "Rohan", "Myra"],
+            "gender": ["0", "1", " 1 "],
+            "grade": [1, 2, 3],
+            "math": [80, 70, 60],
+            "science": [70, 60, 50],
+            "english": [90, 80, 70],
+            "total": [0, 0, 0],
+        }
+    )
+
+    cleaned, _ = clean_data([raw])
+
+    assert cleaned["gender"].tolist() == ["Female", "Male", "Male"]
+
+
+def test_clean_data_removes_outliers_across_combined_files():
+    typical = pd.DataFrame(
+        {
+            "name": [f"Student {index}" for index in range(30)],
+            "gender": ["F", "M"] * 15,
+            "grade": [5] * 30,
+            "math": [50 + index % 5 for index in range(30)],
+            "science": [50 + index % 4 for index in range(30)],
+            "english": [50 + index % 3 for index in range(30)],
+            "total": [0] * 30,
+        }
+    )
+    extreme = pd.DataFrame({"name": ["'Outlier'"], "gender": ["f"], "grade": ["Grade 5"], "math": ["100 marks"], "science": [100], "english": [100], "total": [300]})
+
+    cleaned, report = clean_data([typical, extreme])
+
+    assert "Outlier" not in cleaned["name"].tolist()
+    assert report["outlier_rows"] == 1
+    assert report["removed_rows"] == report["invalid_rows"] + report["outlier_rows"]
+    assert cleaned["student_id"].tolist() == list(range(1, len(cleaned) + 1))
+    assert subject_outlier_summary(cleaned)["outliers"].sum() == 0
+
+
+def test_small_uploads_keep_every_valid_row():
+    raw = pd.DataFrame({"name": ["A", "B", "C"], "gender": ["F", "M", "F"], "grade": [1, 1, 1], "math": [0, 50, 100], "science": [50, 50, 50], "english": [50, 50, 50], "total": [0, 0, 0]})
+
+    _, report = clean_data([raw])
+
+    assert report["outlier_rows"] == 0

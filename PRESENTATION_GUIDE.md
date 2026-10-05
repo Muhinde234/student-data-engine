@@ -105,10 +105,12 @@ student-dashboard/app.py
 
 - Header names are normalized to the expected schema.
 - Headerless files are read using the expected source-column order.
-- Gender values are mapped to `Female`, `Male`, or `Unknown`.
+- Names lose stray quotes and are written in Title Case, so `'navya'`, `"Navya"`, and `NAVYA` all become `Navya`.
+- Gender values are mapped to `Female` (`F`, `girl`, `0`) or `Male` (`M`, `boy`, `1`); anything else is `Unknown`.
 - Grade numbers are extracted and restricted to 1 through 12.
 - Scores are converted to numbers and must be between 0 and 100.
 - Invalid rows are removed before analysis.
+- Rows whose subject scores or total fall outside the 1.5 × IQR boundaries of the combined cohort are removed as outliers.
 - `total` is recalculated as Math + Science + English.
 - `student_id` is generated for every cleaned row.
 - `unique_name` prevents duplicate names from breaking rankings.
@@ -121,7 +123,7 @@ No. It is a data cleaning and descriptive analytics application. It summarizes h
 
 ### Why are some rows removed?
 
-Rows are removed when they do not have a usable grade or valid subject scores. This prevents invalid values from affecting school metrics.
+Rows are removed when they do not have a usable grade or valid subject scores, or when they are statistical outliers by the IQR rule. This prevents invalid or extreme values from distorting school metrics. Data Quality shows how many rows were removed for each reason.
 
 ### Why recalculate the total?
 

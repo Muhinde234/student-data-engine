@@ -76,9 +76,9 @@ def grade_summary(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def subject_outlier_summary(data: pd.DataFrame) -> pd.DataFrame:
-    """Count IQR outliers and report valid score bounds for each subject."""
+    """Count IQR outliers and report valid score bounds for each subject and the total."""
     rows = []
-    for subject in SUBJECTS:
+    for subject in [*SUBJECTS, "total"]:
         scores = data[subject]
         q1 = scores.quantile(0.25)
         q3 = scores.quantile(0.75)

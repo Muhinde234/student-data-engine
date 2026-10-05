@@ -229,7 +229,7 @@ Lower boundary = Q1 - 1.5 * IQR
 Upper boundary = Q3 + 1.5 * IQR
 ```
 
-An outlier is a value outside those boundaries. An outlier is a statistical flag, not automatically an error.
+An outlier is a value outside those boundaries. During cleaning, the boundaries are calculated on the whole combined cohort (all uploaded files together) for Math, Science, English, and the total. Any row outside them is removed, and the check repeats until no outliers remain. The number removed is shown in Data Quality. Uploads with fewer than 20 valid rows skip this step, because the IQR rule is unreliable on tiny samples.
 
 ## 7. What Each Dashboard Area Means
 
@@ -346,7 +346,7 @@ Because the selected combination may not exist in the uploaded file. The app sho
 
 ### Is a high score automatically an outlier?
 
-No. A score of 100 can be valid. The outlier check is statistical and separate from the score-validity check.
+No. A score of 100 can be valid. The outlier check is statistical and separate from the score-validity check: a row is removed as an outlier only when its score or total falls outside the cohort's 1.5 × IQR boundaries.
 
 ### Why are there no predictions?
 

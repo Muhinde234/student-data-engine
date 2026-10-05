@@ -26,3 +26,19 @@ def test_subject_health_chart_keeps_legend_visible():
     figure = subject_outcomes(data)
 
     assert figure.layout.showlegend is True
+
+def test_multi_series_charts_reserve_space_between_title_and_plot_for_legend():
+    from charts import TITLE_BAND, band_chart, total_by_gender
+    from metrics import performance_bands
+
+    data = pd.DataFrame(
+        {"gender": ["Female", "Male", "Female", "Male"], "grade": [1, 1, 2, 2], "math": [70, 30, 90, 50], "science": [65, 45, 85, 20], "english": [72, 60, 40, 95]}
+    )
+    data["total"] = data[["math", "science", "english"]].sum(axis=1)
+
+    for figure in [score_histogram(data, "math"), gender_subject_comparison(data), subject_outcomes(data), total_by_gender(data), band_chart(performance_bands(data))]:
+        legend_top_px = (1 - figure.layout.legend.y) * figure.layout.height
+        assert figure.layout.showlegend is True
+        assert figure.layout.legend.yref == "container"
+        assert legend_top_px >= TITLE_BAND
+        assert figure.layout.margin.t >= legend_top_px + 30
